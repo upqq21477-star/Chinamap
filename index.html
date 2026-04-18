@@ -3,106 +3,71 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Legion3K 懸浮面板校準工具</title>
+<title>Legion3K 獨立縮放校準工具</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
   body { background: #000; color: #c8c0a8; font-family: sans-serif; height: 100vh; overflow: hidden; }
-  
-  #main { width: 100vw; height: 100vh; position: relative; background: #000; }
+  #main { width: 100vw; height: 100vh; position: relative; }
   canvas { display: block; image-rendering: pixelated; }
 
-  /* 可移動的控制面板 */
   #floating-panel {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 260px;
-    background: rgba(22, 22, 30, 0.95);
-    border: 1px solid #c8a050;
-    border-radius: 8px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.8);
-    z-index: 100;
-    display: flex;
-    flex-direction: column;
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+    width: 260px; background: rgba(22, 22, 30, 0.95); border: 1px solid #c8a050;
+    border-radius: 8px; z-index: 100; display: flex; flex-direction: column;
   }
 
-  /* 面板標題（拖動把手） */
-  #panel-header {
-    background: #c8a050;
-    color: #000;
-    padding: 8px;
-    font-size: 12px;
-    font-weight: bold;
-    text-align: center;
-    cursor: move;
-    border-top-left-radius: 6px;
-    border-top-right-radius: 6px;
-  }
+  #panel-header { background: #c8a050; color: #000; padding: 8px; font-size: 12px; font-weight: bold; text-align: center; cursor: move; border-radius: 6px 6px 0 0; }
+  .panel-content { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
 
-  .panel-content { padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+  #info-display { background: #0d0d12; padding: 8px; border-radius: 4px; font-family: monospace; font-size: 11px; color: #7ab870; border: 1px solid #2a2a3a; line-height: 1.4; }
 
-  /* 資訊顯示區 */
-  #info-display {
-    background: #0d0d12;
-    padding: 8px;
-    border-radius: 4px;
-    font-family: monospace;
-    font-size: 11px;
-    color: #7ab870;
-    border: 1px solid #2a2a3a;
-  }
-
-  /* 按鈕佈局 */
   .control-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
-  .joy-btn {
-    background: #1e1e2e; border: 1px solid #3a3a5a; border-radius: 4px;
-    color: #c8a050; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 16px;
-  }
+  .joy-btn { background: #1e1e2e; border: 1px solid #3a3a5a; border-radius: 4px; color: #c8a050; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
   .joy-btn:active { background: #c8a050; color: #000; }
 
-  .row-group { display: flex; justify-content: space-between; align-items: center; gap: 5px; }
-  .scale-label { font-size: 11px; color: #7a7a9a; min-width: 25px; }
-  .small-btn { flex: 1; height: 30px; background: #1e1e2e; border: 1px solid #3a3a5a; color: #fff; border-radius: 4px; }
+  .row-group { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .scale-label { font-size: 11px; color: #7a7a9a; min-width: 40px; }
+  .scale-ctrl { flex: 1; display: flex; gap: 4px; }
+  .small-btn { flex: 1; height: 35px; background: #1e1e2e; border: 1px solid #3a3a5a; color: #fff; border-radius: 4px; font-size: 18px; }
 
-  #btnLock { width: 100%; padding: 6px; font-size: 11px; margin-top: 5px; border-radius: 4px; border: 1px solid #c8a050; background: transparent; color: #c8a050; }
-  #btnLock.active { background: #c8a050; color: #000; }
-  
-  #btnCopy { width: 100%; padding: 8px; background: #7ab870; color: #000; font-weight: bold; border: none; border-radius: 4px; margin-top: 5px; }
+  #btnLock { width: 100%; padding: 8px; font-size: 11px; border-radius: 4px; border: 1px solid #c8a050; background: transparent; color: #c8a050; margin-top: 4px; }
+  #btnLock.unlocked { border-color: #5a5a7a; color: #5a5a7a; }
+  #btnCopy { width: 100%; padding: 10px; background: #7ab870; color: #000; font-weight: bold; border: none; border-radius: 4px; margin-top: 4px; }
 </style>
 </head>
 <body>
 
 <div id="main">
   <canvas id="cv"></canvas>
-
   <div id="floating-panel">
     <div id="panel-header">按住此處移動面板</div>
-    
     <div class="panel-content">
-      <div id="info-display">
-        X: 0.0 | Y: 0.0<br>
-        SX: 1.0000 | SY: 1.0000
-      </div>
-
+      <div id="info-display">載入中...</div>
+      
       <div class="control-grid">
-        <div></div><div class="joy-btn" id="up">↑</div><div></div>
-        <div class="joy-btn" id="left">←</div><div class="joy-btn" onclick="resetAll()">R</div><div class="joy-btn" id="right">→</div>
-        <div></div><div class="joy-btn" id="down">↓</div><div></div>
+        <div></div><button class="joy-btn" id="up">↑</button><div></div>
+        <button class="joy-btn" id="left">←</button><button class="joy-btn" onclick="resetAll()">R</button><button class="joy-btn" id="right">→</button>
+        <div></div><button class="joy-btn" id="down">↓</button><div></div>
+      </div>
+
+      <button id="btnLock" onclick="toggleLock()">🔗 目前模式：鎖定比例</button>
+
+      <div class="row-group">
+        <span class="scale-label">左右(SX)</span>
+        <div class="scale-ctrl">
+          <button class="small-btn" id="sx_out">-</button>
+          <button class="small-btn" id="sx_in">+</button>
+        </div>
       </div>
 
       <div class="row-group">
-        <span class="scale-label">寬(X)</span>
-        <button class="small-btn" id="sx_in">+</button>
-        <button class="small-btn" id="sx_out">-</button>
-      </div>
-      <div class="row-group">
-        <span class="scale-label">高(Y)</span>
-        <button class="small-btn" id="sy_in">+</button>
-        <button class="small-btn" id="sy_out">-</button>
+        <span class="scale-label">上下(SY)</span>
+        <div class="scale-ctrl">
+          <button class="small-btn" id="sy_out">-</button>
+          <button class="small-btn" id="sy_in">+</button>
+        </div>
       </div>
 
-      <button id="btnLock" onclick="toggleLock()" class="active">🔗 鎖定比例</button>
       <button id="btnCopy" onclick="copyParams()">複製接合參數</button>
     </div>
   </div>
@@ -136,85 +101,66 @@ function render() {
 
   ctx.globalAlpha = 0.8;
   ctx.save();
+  // 核心邏輯：位移 -> 縮放
   ctx.translate(baseX + params.offX * viewZoom, baseY + params.offY * viewZoom);
   ctx.scale(params.scaleX, params.scaleY);
   ctx.drawImage(overlayImg, 0, 0, displayW, displayH);
   ctx.restore();
 
-  // 更新面板資訊
   document.getElementById('info-display').innerHTML = 
     `X: ${params.offX.toFixed(1)} | Y: ${params.offY.toFixed(1)}<br>` +
-    `SX: ${params.scaleX.toFixed(4)} | SY: ${params.scaleY.toFixed(4)}`;
+    `SX: ${params.scaleX.toFixed(4)}<br>SY: ${params.scaleY.toFixed(4)}`;
 }
 
-// 面板拖動功能
+// 拖動面板邏輯
 const panel = document.getElementById('floating-panel');
 const header = document.getElementById('panel-header');
-let pDx = 0, pDy = 0, isPDragging = false;
-
-header.addEventListener('touchstart', e => {
-  isPDragging = true;
-  const touch = e.touches[0];
-  pDx = touch.clientX - panel.offsetLeft;
-  pDy = touch.clientY - panel.offsetTop;
-});
-
-window.addEventListener('touchmove', e => {
-  if (!isPDragging) return;
-  const touch = e.touches[0];
-  panel.style.left = (touch.clientX - pDx + panel.offsetWidth/2) + 'px';
-  panel.style.top = (touch.clientY - pDy + panel.offsetHeight/2) + 'px';
-  panel.style.transform = 'translate(-50%, -50%)';
-});
-
+let isPDragging = false, pDx, pDy;
+header.addEventListener('touchstart', e => { isPDragging = true; pDx = e.touches[0].clientX - panel.offsetLeft; pDy = e.touches[0].clientY - panel.offsetTop; e.preventDefault(); });
+window.addEventListener('touchmove', e => { if (!isPDragging) return; panel.style.left = (e.touches[0].clientX - pDx + panel.offsetWidth/2) + 'px'; panel.style.top = (e.touches[0].clientY - pDy + panel.offsetHeight/2) + 'px'; panel.style.transform = 'translate(-50%, -50%)'; });
 window.addEventListener('touchend', () => isPDragging = false);
 
-// 疊圖觸控移動
-let isDragging = false, lastX, lastY;
-cv.addEventListener('touchstart', e => {
-  if (e.target === cv) {
-    isDragging = true;
-    lastX = e.touches[0].clientX;
-    lastY = e.touches[0].clientY;
-  }
-});
-cv.addEventListener('touchmove', e => {
-  if (!isDragging) return;
-  params.offX += (e.touches[0].clientX - lastX) / viewZoom;
-  params.offY += (e.touches[0].clientY - lastY) / viewZoom;
-  lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
-  render();
-});
-cv.addEventListener('touchend', () => isDragging = false);
+// 縮放與鎖定邏輯
+function toggleLock() {
+  isLocked = !isLocked;
+  const btn = document.getElementById('btnLock');
+  btn.innerText = isLocked ? "🔗 目前模式：鎖定比例" : "🔓 目前模式：獨立縮放";
+  btn.classList.toggle('unlocked', !isLocked);
+}
 
 function setupBtn(id, action) {
   const btn = document.getElementById(id);
   let timer;
-  const run = () => { action(); render(); timer = setTimeout(run, 60); };
+  const run = () => { action(); render(); timer = setTimeout(run, 50); };
   btn.addEventListener('touchstart', e => { e.preventDefault(); run(); });
   btn.addEventListener('touchend', () => clearTimeout(timer));
 }
 
+// 移動按鈕
 setupBtn('up', () => params.offY -= 0.5);
 setupBtn('down', () => params.offY += 0.5);
 setupBtn('left', () => params.offX -= 0.5);
 setupBtn('right', () => params.offX += 0.5);
+
+// 左右縮放 (SX)
 setupBtn('sx_in', () => { params.scaleX += 0.001; if(isLocked) params.scaleY = params.scaleX; });
 setupBtn('sx_out', () => { params.scaleX -= 0.001; if(isLocked) params.scaleY = params.scaleX; });
+
+// 上下縮放 (SY)
 setupBtn('sy_in', () => { params.scaleY += 0.001; if(isLocked) params.scaleX = params.scaleY; });
 setupBtn('sy_out', () => { params.scaleY -= 0.001; if(isLocked) params.scaleX = params.scaleY; });
-
-function toggleLock() {
-  isLocked = !isLocked;
-  document.getElementById('btnLock').classList.toggle('active', isLocked);
-  document.getElementById('btnLock').innerText = isLocked ? "🔗 鎖定比例" : "🔓 自由縮放";
-}
 
 function resetAll() { params = { offX: 0, offY: 0, scaleX: 1.0, scaleY: 1.0 }; render(); }
 function copyParams() {
   const json = JSON.stringify({ offset_px: { x: params.offX, y: params.offY }, scale: { x: params.scaleX, y: params.scaleY } }, null, 1);
   navigator.clipboard.writeText(json).then(() => alert("參數已複製"));
 }
+
+// 畫布拖動
+let isDragging = false, lastX, lastY;
+cv.addEventListener('touchstart', e => { if(e.target === cv) { isDragging = true; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; } });
+cv.addEventListener('touchmove', e => { if(!isDragging) return; params.offX += (e.touches[0].clientX - lastX) / viewZoom; params.offY += (e.touches[0].clientY - lastY) / viewZoom; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; render(); });
+cv.addEventListener('touchend', () => isDragging = false);
 
 window.addEventListener('resize', render);
 render();
