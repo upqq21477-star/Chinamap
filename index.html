@@ -3,53 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Legion3K 手機版校準工具</title>
+<title>Legion3K 獨立縮放校準工具</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
   body { background: #0d0d12; color: #c8c0a8; font-family: sans-serif; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
   
-  /* 頂部工具列 */
-  #toolbar { background: #16161e; padding: 10px; display: flex; flex-wrap: wrap; gap: 8px; border-bottom: 1px solid #2a2a3a; z-index: 10; }
-  .ctrl-group { display: flex; align-items: center; gap: 5px; background: #1e1e2e; padding: 5px 8px; border-radius: 4px; }
+  #toolbar { background: #16161e; padding: 8px; display: flex; flex-wrap: wrap; gap: 6px; border-bottom: 1px solid #2a2a3a; z-index: 10; }
+  .ctrl-group { display: flex; align-items: center; gap: 4px; background: #1e1e2e; padding: 4px 6px; border-radius: 4px; }
   label { font-size: 10px; color: #7a7a9a; }
-  input[type=number] { width: 55px; background: #000; border: 1px solid #3a3a5a; color: #c8a050; font-size: 12px; }
+  input[type=number] { width: 50px; background: #000; border: 1px solid #3a3a5a; color: #c8a050; font-size: 11px; }
 
-  /* 畫布區域 */
   #main { flex: 1; position: relative; background: #000; overflow: hidden; }
   canvas { display: block; image-rendering: pixelated; }
 
-  /* 手機專用虛擬按鈕組 */
+  /* 虛擬搖桿與縮放控制 */
   #mobile-controls {
-    position: absolute; bottom: 20px; left: 20px; display: grid; 
-    grid-template-columns: repeat(3, 50px); grid-template-rows: repeat(3, 50px); gap: 10px;
-    z-index: 20; opacity: 0.8;
+    position: absolute; bottom: 20px; left: 15px; display: flex; flex-direction: column; gap: 10px;
   }
+  .dpad { display: grid; grid-template-columns: repeat(3, 45px); grid-template-rows: repeat(3, 45px); gap: 5px; }
   .joy-btn {
-    background: rgba(42, 42, 58, 0.9); border: 2px solid #c8a050; border-radius: 50%;
-    color: #c8a050; display: flex; align-items: center; justify-content: center;
-    font-size: 20px; font-weight: bold;
+    background: rgba(42, 42, 58, 0.9); border: 1px solid #c8a050; border-radius: 8px;
+    color: #c8a050; display: flex; align-items: center; justify-content: center; font-size: 18px;
   }
   .joy-btn:active { background: #c8a050; color: #000; }
 
-  /* 參數輸出區 */
+  /* 獨立縮放按鈕區 */
+  #scale-controls {
+    position: absolute; bottom: 20px; right: 15px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .scale-group { display: flex; gap: 5px; align-items: center; background: rgba(30, 30, 46, 0.7); padding: 5px; border-radius: 8px; }
+  .scale-btn { width: 40px; height: 40px; border-radius: 6px; background: #1e1e2e; color: #fff; border: 1px solid #3a3a5a; font-size: 14px; }
+  .btn-active { background: #c8a050 !important; color: #000 !important; }
+
   #side-panel {
-    position: absolute; right: 0; top: 0; bottom: 0; width: 140px;
-    background: rgba(16, 16, 26, 0.85); border-left: 1px solid #2a2a3a;
-    padding: 10px; display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+    position: absolute; right: 15px; top: 15px; width: 120px;
+    background: rgba(16, 16, 26, 0.85); padding: 8px; border-radius: 4px; pointer-events: none;
   }
-  #side-panel * { pointer-events: auto; }
-  #param-box { 
-    background: #000; font-size: 9px; color: #7ab870; padding: 5px; 
-    border: 1px solid #c8a050; word-break: break-all; height: 100px; overflow-y: auto;
-  }
-
-  /* 底部縮放滑桿 */
-  #zoom-bar {
-    position: absolute; bottom: 20px; right: 20px; display: flex; flex-direction: column; gap: 15px;
-  }
-  .zoom-btn { width: 45px; height: 45px; border-radius: 8px; background: #1e1e2e; color: #fff; border: 1px solid #3a3a5a; }
-
-  #status { font-size: 10px; padding: 5px; background: #000; color: #5a5a7a; text-align: center; }
+  #param-box { font-size: 9px; color: #7ab870; white-space: pre-wrap; word-break: break-all; pointer-events: auto; }
 </style>
 </head>
 <body>
@@ -60,39 +50,47 @@
     <label>Y</label><input type="number" id="offY" value="0" step="0.5">
   </div>
   <div class="ctrl-group">
-    <label>縮放</label><input type="number" id="scaleX" value="1.0000" step="0.001">
-    <button id="btnLink" style="padding:2px 5px; font-size:10px; background:#c8a050;">🔗</button>
+    <label>SX</label><input type="number" id="scaleX" value="1.000" step="0.001">
+    <label>SY</label><input type="number" id="scaleY" value="1.000" step="0.001">
   </div>
-  <button onclick="copyParams()" style="background:#7ab870; color:#000; border:none; padding:5px 10px; border-radius:4px; font-weight:bold;">複製參數</button>
+  <button id="btnLock" onclick="toggleLock()" class="btn-active" style="padding:4px 8px; font-size:11px; border-radius:4px; border:none;">🔗 鎖定比例</button>
+  <button onclick="copyParams()" style="background:#7ab870; color:#000; border:none; padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px;">複製</button>
 </div>
 
 <div id="main">
   <canvas id="cv"></canvas>
   
   <div id="mobile-controls">
-    <div></div><div class="joy-btn" id="up">↑</div><div></div>
-    <div class="joy-btn" id="left">←</div><div class="joy-btn" onclick="resetAll()">R</div><div class="joy-btn" id="right">→</div>
-    <div></div><div class="joy-btn" id="down">↓</div><div></div>
+    <div class="dpad">
+      <div></div><div class="joy-btn" id="up">↑</div><div></div>
+      <div class="joy-btn" id="left">←</div><div class="joy-btn" onclick="resetAll()">R</div><div class="joy-btn" id="right">→</div>
+      <div></div><div class="joy-btn" id="down">↓</div><div></div>
+    </div>
   </div>
 
-  <div id="zoom-bar">
-    <button class="zoom-btn" id="zin">+</button>
-    <button class="zoom-btn" id="zout">-</button>
+  <div id="scale-controls">
+    <div class="scale-group">
+      <span style="font-size:10px; width:20px;">寬</span>
+      <button class="scale-btn" id="sx_in">+</button>
+      <button class="scale-btn" id="sx_out">-</button>
+    </div>
+    <div class="scale-group">
+      <span style="font-size:10px; width:20px;">高</span>
+      <button class="scale-btn" id="sy_in">+</button>
+      <button class="scale-btn" id="sy_out">-</button>
+    </div>
   </div>
 
   <div id="side-panel">
-    <div style="font-size:10px; color:#c8a050;">合檔 JSON</div>
     <div id="param-box"></div>
   </div>
 </div>
-
-<div id="status" id="st-mouse">縮放: 100% | 模式: 手機觸控校準</div>
 
 <script>
 const cv = document.getElementById('cv');
 const ctx = cv.getContext('2d');
 let params = { offX: 0, offY: 0, scaleX: 1.0, scaleY: 1.0 };
-let viewZoom = 1.0, linkScale = true;
+let viewZoom = 1.0, isLocked = true;
 const W = 720, H = 405;
 
 const baseImg = new Image();
@@ -111,11 +109,9 @@ function render() {
   const displayW = W * viewZoom, displayH = H * viewZoom;
   const baseX = (cv.width - displayW) / 2, baseY = (cv.height - displayH) / 2;
 
-  // 底圖
   ctx.globalAlpha = 0.5;
   ctx.drawImage(baseImg, baseX, baseY, displayW, displayH);
 
-  // 疊圖
   ctx.globalAlpha = 0.8;
   ctx.save();
   ctx.translate(baseX + params.offX * viewZoom, baseY + params.offY * viewZoom);
@@ -130,39 +126,44 @@ function updateUI() {
   document.getElementById('offX').value = params.offX;
   document.getElementById('offY').value = params.offY;
   document.getElementById('scaleX').value = params.scaleX.toFixed(4);
+  document.getElementById('scaleY').value = params.scaleY.toFixed(4);
   
   const json = {
-    layer: "mongolia_overlay.png",
     offset_px: { x: params.offX, y: params.offY },
-    scale: { x: params.scaleX, y: params.scaleX }
+    scale: { x: params.scaleX, y: params.scaleY }
   };
-  document.getElementById('param-box').textContent = JSON.stringify(json, null, 2);
+  document.getElementById('param-box').textContent = JSON.stringify(json, null, 1);
 }
 
-// 觸控拖曳
+function toggleLock() {
+  isLocked = !isLocked;
+  const btn = document.getElementById('btnLock');
+  btn.classList.toggle('btn-active', isLocked);
+  btn.innerText = isLocked ? "🔗 鎖定比例" : "🔓 自由縮放";
+}
+
+// 觸控移動
 let isDragging = false, lastX, lastY;
 cv.addEventListener('touchstart', e => {
-  isDragging = true;
-  lastX = e.touches[0].clientX;
-  lastY = e.touches[0].clientY;
+  if(e.touches.length === 1) {
+    isDragging = true;
+    lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
+  }
 });
 cv.addEventListener('touchmove', e => {
   if (!isDragging) return;
-  const dx = (e.touches[0].clientX - lastX) / viewZoom;
-  const dy = (e.touches[0].clientY - lastY) / viewZoom;
-  params.offX += parseFloat(dx.toFixed(1));
-  params.offY += parseFloat(dy.toFixed(1));
-  lastX = e.touches[0].clientX;
-  lastY = e.touches[0].clientY;
+  params.offX += (e.touches[0].clientX - lastX) / viewZoom;
+  params.offY += (e.touches[0].clientY - lastY) / viewZoom;
+  lastX = e.touches[0].clientX; lastY = e.touches[0].clientY;
   render();
 });
 cv.addEventListener('touchend', () => isDragging = false);
 
-// 虛擬按鈕邏輯 (支援長按)
+// 按鈕連續動作
 function setupBtn(id, action) {
   const btn = document.getElementById(id);
   let timer;
-  const run = () => { action(); render(); timer = setTimeout(run, 50); };
+  const run = () => { action(); render(); timer = setTimeout(run, 60); };
   btn.addEventListener('touchstart', e => { e.preventDefault(); run(); });
   btn.addEventListener('touchend', () => clearTimeout(timer));
 }
@@ -171,13 +172,27 @@ setupBtn('up', () => params.offY -= 0.5);
 setupBtn('down', () => params.offY += 0.5);
 setupBtn('left', () => params.offX -= 0.5);
 setupBtn('right', () => params.offX += 0.5);
-setupBtn('zin', () => { params.scaleX += 0.001; params.scaleY = params.scaleX; });
-setupBtn('zout', () => { params.scaleX -= 0.001; params.scaleY = params.scaleX; });
+
+setupBtn('sx_in', () => { 
+    params.scaleX += 0.001; 
+    if(isLocked) params.scaleY = params.scaleX;
+});
+setupBtn('sx_out', () => { 
+    params.scaleX -= 0.001; 
+    if(isLocked) params.scaleY = params.scaleX;
+});
+setupBtn('sy_in', () => { 
+    params.scaleY += 0.001; 
+    if(isLocked) params.scaleX = params.scaleY;
+});
+setupBtn('sy_out', () => { 
+    params.scaleY -= 0.001; 
+    if(isLocked) params.scaleX = params.scaleY;
+});
 
 function resetAll() { params = { offX: 0, offY: 0, scaleX: 1.0, scaleY: 1.0 }; render(); }
 function copyParams() {
-  const text = document.getElementById('param-box').textContent;
-  navigator.clipboard.writeText(text).then(() => alert("參數已複製！"));
+  navigator.clipboard.writeText(document.getElementById('param-box').textContent).then(() => alert("參數已複製"));
 }
 
 window.addEventListener('resize', render);
