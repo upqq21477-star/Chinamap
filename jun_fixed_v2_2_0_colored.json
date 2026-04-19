@@ -1,0 +1,3528 @@
+{
+  "_meta": {
+    "title": "三國志郡級固定表",
+    "version": "2.2.0",
+    "date": "2026-04-19",
+    "description": "本檔案為固定表，記錄每個郡的靜態屬性。變動屬性（兵力、當前勢力、飛地等）存於變動表。",
+    "fields": {
+      "id": "郡代碼，唯一識別碼，同時作為顏色代碼使用",
+      "name": "郡名稱",
+      "region": "所屬州或族群",
+      "mobilization": "動員率，範圍10-25，直接用於兵力增長計算的權重值。核心郡20-25，普通郡15-20，邊疆郡12-18，蠻族部落10-15",
+      "traffic": "交通值，範圍0.2-1.0，代表兵力移動難度。平原通暢=1.0，山地難行=0.2，海路禁止通行",
+      "neighbors": "相鄰郡代碼陣列，純陸地接壤才計入，雙向對稱（若A含B，則B必含A），無海路",
+      "origin_faction_id": "起源勢力代碼，初始狀態等同本郡代碼",
+      "origin_faction_name": "起源勢力名稱，即本郡代表人物",
+      "color_hex": "郡代表色HEX，唯一不重複，取自200色調色盤。同州域使用相鄰色相區段，便於地圖渲染時視覺區分。格式：#RRGGBB（大寫）",
+      "area_pixels": "像素面積，依720x490地圖掃描所得實際像素數"
+    },
+    "notes": [
+      "動員率用於兵力增長公式：勢力總增長 × (本郡動員率 / 勢力所有郡動員率總和)",
+      "郡完整度加成：is_complete=true 時，該郡動員率 × 1.1",
+      "州完整度加成：若勢力持有某州所有郡，該州加總動員率 × 1.1",
+      "完整度加成計算用於最終兵力分配，不改變本表動員率原值",
+      "交通值用於兵力移動消耗，不影響兵力增長",
+      "ID 42 保留未使用（原始資料跳號）"
+    ]
+  },
+  "data": [
+    {
+      "id": 2,
+      "name": "河南尹",
+      "color_hex": "#C3224A",
+      "region": "司隸",
+      "region_id": 1,
+      "mobilization": 25,
+      "traffic": 1.0,
+      "neighbors": [
+        3,
+        4,
+        5,
+        9,
+        12,
+        13,
+        47,
+        55
+      ],
+      "origin_faction_id": 2,
+      "origin_faction_name": "何進",
+      "area_pixels": 414
+    },
+    {
+      "id": 3,
+      "name": "河內郡",
+      "color_hex": "#E15A7C",
+      "region": "司隸",
+      "region_id": 1,
+      "mobilization": 22,
+      "traffic": 0.8,
+      "neighbors": [
+        2,
+        13,
+        14,
+        18,
+        28,
+        47
+      ],
+      "origin_faction_id": 3,
+      "origin_faction_name": "司馬懿",
+      "area_pixels": 248
+    },
+    {
+      "id": 4,
+      "name": "河東郡",
+      "color_hex": "#971A3A",
+      "region": "司隸",
+      "region_id": 1,
+      "mobilization": 20,
+      "traffic": 0.6,
+      "neighbors": [
+        2,
+        5,
+        7,
+        47,
+        48,
+        49,
+        52
+      ],
+      "origin_faction_id": 4,
+      "origin_faction_name": "徐晃",
+      "area_pixels": 538
+    },
+    {
+      "id": 5,
+      "name": "弘農郡",
+      "color_hex": "#E9859E",
+      "region": "司隸",
+      "region_id": 1,
+      "mobilization": 18,
+      "traffic": 0.6,
+      "neighbors": [
+        2,
+        4,
+        6,
+        7,
+        55,
+        56,
+        87
+      ],
+      "origin_faction_id": 5,
+      "origin_faction_name": "段煨",
+      "area_pixels": 543
+    },
+    {
+      "id": 6,
+      "name": "京兆尹",
+      "color_hex": "#79152E",
+      "region": "司隸",
+      "region_id": 1,
+      "mobilization": 22,
+      "traffic": 0.8,
+      "neighbors": [
+        5,
+        7,
+        8,
+        87
+      ],
+      "origin_faction_id": 6,
+      "origin_faction_name": "漢帝",
+      "area_pixels": 119
+    },
+    {
+      "id": 7,
+      "name": "左馮翊",
+      "color_hex": "#DC3B64",
+      "region": "司隸",
+      "region_id": 1,
+      "mobilization": 20,
+      "traffic": 0.8,
+      "neighbors": [
+        4,
+        5,
+        6,
+        8,
+        49
+      ],
+      "origin_faction_id": 7,
+      "origin_faction_name": "皇甫嵩",
+      "area_pixels": 266
+    },
+    {
+      "id": 8,
+      "name": "右扶風",
+      "color_hex": "#AD1E42",
+      "region": "司隸",
+      "region_id": 1,
+      "mobilization": 20,
+      "traffic": 0.8,
+      "neighbors": [
+        6,
+        7,
+        49,
+        78,
+        79,
+        87,
+        99,
+        100
+      ],
+      "origin_faction_id": 8,
+      "origin_faction_name": "盧植",
+      "area_pixels": 498
+    },
+    {
+      "id": 9,
+      "name": "潁川郡",
+      "color_hex": "#7222C3",
+      "region": "豫州",
+      "region_id": 2,
+      "mobilization": 25,
+      "traffic": 1.0,
+      "neighbors": [
+        2,
+        10,
+        12,
+        55
+      ],
+      "origin_faction_id": 9,
+      "origin_faction_name": "荀彧",
+      "area_pixels": 234
+    },
+    {
+      "id": 10,
+      "name": "汝南郡",
+      "color_hex": "#9E5AE1",
+      "region": "豫州",
+      "region_id": 2,
+      "mobilization": 25,
+      "traffic": 1.0,
+      "neighbors": [
+        9,
+        12,
+        13,
+        55,
+        58,
+        63,
+        65,
+        67
+      ],
+      "origin_faction_id": 10,
+      "origin_faction_name": "袁術",
+      "area_pixels": 691
+    },
+    {
+      "id": 11,
+      "name": "沛國",
+      "color_hex": "#591A97",
+      "region": "豫州",
+      "region_id": 2,
+      "mobilization": 22,
+      "traffic": 1.0,
+      "neighbors": [
+        13,
+        18,
+        19,
+        20,
+        65
+      ],
+      "origin_faction_id": 11,
+      "origin_faction_name": "紀靈",
+      "area_pixels": 231
+    },
+    {
+      "id": 12,
+      "name": "陳國",
+      "color_hex": "#B785E9",
+      "region": "豫州",
+      "region_id": 2,
+      "mobilization": 22,
+      "traffic": 1.0,
+      "neighbors": [
+        2,
+        9,
+        10,
+        13
+      ],
+      "origin_faction_id": 12,
+      "origin_faction_name": "陳群",
+      "area_pixels": 223
+    },
+    {
+      "id": 13,
+      "name": "梁國",
+      "color_hex": "#471579",
+      "region": "豫州",
+      "region_id": 2,
+      "mobilization": 22,
+      "traffic": 1.0,
+      "neighbors": [
+        2,
+        3,
+        10,
+        11,
+        12,
+        18,
+        65
+      ],
+      "origin_faction_id": 13,
+      "origin_faction_name": "荀攸",
+      "area_pixels": 348
+    },
+    {
+      "id": 14,
+      "name": "東郡",
+      "color_hex": "#2272C3",
+      "region": "兗州",
+      "region_id": 3,
+      "mobilization": 22,
+      "traffic": 1.0,
+      "neighbors": [
+        3,
+        15,
+        18,
+        28,
+        33
+      ],
+      "origin_faction_id": 14,
+      "origin_faction_name": "許褚",
+      "area_pixels": 109
+    },
+    {
+      "id": 15,
+      "name": "東平國",
+      "color_hex": "#5A9EE1",
+      "region": "兗州",
+      "region_id": 3,
+      "mobilization": 20,
+      "traffic": 1.0,
+      "neighbors": [
+        14,
+        16,
+        17,
+        22,
+        26,
+        33
+      ],
+      "origin_faction_id": 15,
+      "origin_faction_name": "典韋",
+      "area_pixels": 158
+    },
+    {
+      "id": 16,
+      "name": "濟陰國",
+      "color_hex": "#1A5997",
+      "region": "兗州",
+      "region_id": 3,
+      "mobilization": 20,
+      "traffic": 1.0,
+      "neighbors": [
+        15,
+        18,
+        20,
+        22
+      ],
+      "origin_faction_id": 16,
+      "origin_faction_name": "曹仁",
+      "area_pixels": 132
+    },
+    {
+      "id": 17,
+      "name": "濟北國",
+      "color_hex": "#85B7E9",
+      "region": "兗州",
+      "region_id": 3,
+      "mobilization": 20,
+      "traffic": 1.0,
+      "neighbors": [
+        15,
+        24,
+        26,
+        33,
+        35
+      ],
+      "origin_faction_id": 17,
+      "origin_faction_name": "郭嘉",
+      "area_pixels": 111
+    },
+    {
+      "id": 18,
+      "name": "陳留郡",
+      "color_hex": "#154779",
+      "region": "兗州",
+      "region_id": 3,
+      "mobilization": 25,
+      "traffic": 1.0,
+      "neighbors": [
+        3,
+        11,
+        13,
+        14,
+        16,
+        20
+      ],
+      "origin_faction_id": 18,
+      "origin_faction_name": "曹操",
+      "area_pixels": 190
+    },
+    {
+      "id": 19,
+      "name": "下邳國",
+      "color_hex": "#22C357",
+      "region": "徐州",
+      "region_id": 4,
+      "mobilization": 25,
+      "traffic": 1.0,
+      "neighbors": [
+        11,
+        20,
+        21,
+        23,
+        65
+      ],
+      "origin_faction_id": 19,
+      "origin_faction_name": "劉備",
+      "area_pixels": 172
+    },
+    {
+      "id": 20,
+      "name": "彭城國",
+      "color_hex": "#5AE187",
+      "region": "徐州",
+      "region_id": 4,
+      "mobilization": 20,
+      "traffic": 1.0,
+      "neighbors": [
+        11,
+        16,
+        18,
+        19,
+        21,
+        22
+      ],
+      "origin_faction_id": 20,
+      "origin_faction_name": "關羽",
+      "area_pixels": 272
+    },
+    {
+      "id": 21,
+      "name": "東海郡",
+      "color_hex": "#1A9744",
+      "region": "徐州",
+      "region_id": 4,
+      "mobilization": 18,
+      "traffic": 0.8,
+      "neighbors": [
+        19,
+        20,
+        22,
+        23,
+        26
+      ],
+      "origin_faction_id": 21,
+      "origin_faction_name": "張飛",
+      "area_pixels": 215
+    },
+    {
+      "id": 22,
+      "name": "琅邪國",
+      "color_hex": "#85E9A6",
+      "region": "徐州",
+      "region_id": 4,
+      "mobilization": 18,
+      "traffic": 0.6,
+      "neighbors": [
+        15,
+        16,
+        20,
+        21,
+        26
+      ],
+      "origin_faction_id": 22,
+      "origin_faction_name": "諸葛亮",
+      "area_pixels": 299
+    },
+    {
+      "id": 23,
+      "name": "廣陵郡",
+      "color_hex": "#157936",
+      "region": "徐州",
+      "region_id": 4,
+      "mobilization": 20,
+      "traffic": 1.0,
+      "neighbors": [
+        19,
+        21,
+        65,
+        66,
+        69
+      ],
+      "origin_faction_id": 23,
+      "origin_faction_name": "徐庶",
+      "area_pixels": 828
+    },
+    {
+      "id": 24,
+      "name": "濟南國",
+      "color_hex": "#72C322",
+      "region": "青州",
+      "region_id": 5,
+      "mobilization": 20,
+      "traffic": 1.0,
+      "neighbors": [
+        17,
+        25,
+        26,
+        32,
+        35
+      ],
+      "origin_faction_id": 24,
+      "origin_faction_name": "程昱",
+      "area_pixels": 207
+    },
+    {
+      "id": 25,
+      "name": "樂安國",
+      "color_hex": "#9EE15A",
+      "region": "青州",
+      "region_id": 5,
+      "mobilization": 18,
+      "traffic": 1.0,
+      "neighbors": [
+        24,
+        26
+      ],
+      "origin_faction_id": 25,
+      "origin_faction_name": "馬良",
+      "area_pixels": 128
+    },
+    {
+      "id": 26,
+      "name": "北海國",
+      "color_hex": "#59971A",
+      "region": "青州",
+      "region_id": 5,
+      "mobilization": 25,
+      "traffic": 1.0,
+      "neighbors": [
+        15,
+        17,
+        21,
+        22,
+        24,
+        25,
+        27
+      ],
+      "origin_faction_id": 26,
+      "origin_faction_name": "太史慈",
+      "area_pixels": 527
+    },
+    {
+      "id": 27,
+      "name": "東萊郡",
+      "color_hex": "#B7E985",
+      "region": "青州",
+      "region_id": 5,
+      "mobilization": 15,
+      "traffic": 0.6,
+      "neighbors": [
+        26
+      ],
+      "origin_faction_id": 27,
+      "origin_faction_name": "法正",
+      "area_pixels": 422
+    },
+    {
+      "id": 28,
+      "name": "魏郡",
+      "color_hex": "#C39A22",
+      "region": "冀州",
+      "region_id": 6,
+      "mobilization": 22,
+      "traffic": 1.0,
+      "neighbors": [
+        3,
+        14,
+        33,
+        34,
+        47,
+        48
+      ],
+      "origin_faction_id": 28,
+      "origin_faction_name": "審配",
+      "area_pixels": 327
+    },
+    {
+      "id": 29,
+      "name": "鉅鹿郡",
+      "color_hex": "#E1C05A",
+      "region": "冀州",
+      "region_id": 6,
+      "mobilization": 20,
+      "traffic": 1.0,
+      "neighbors": [
+        30,
+        31,
+        32,
+        34,
+        35
+      ],
+      "origin_faction_id": 29,
+      "origin_faction_name": "文醜",
+      "area_pixels": 185
+    },
+    {
+      "id": 30,
+      "name": "常山國",
+      "color_hex": "#97781A",
+      "region": "冀州",
+      "region_id": 6,
+      "mobilization": 20,
+      "traffic": 0.6,
+      "neighbors": [
+        29,
+        31,
+        34,
+        48,
+        50
+      ],
+      "origin_faction_id": 30,
+      "origin_faction_name": "趙雲",
+      "area_pixels": 219
+    },
+    {
+      "id": 31,
+      "name": "中山國",
+      "color_hex": "#E9D085",
+      "region": "冀州",
+      "region_id": 6,
+      "mobilization": 20,
+      "traffic": 0.8,
+      "neighbors": [
+        29,
+        30,
+        32,
+        37,
+        38,
+        39,
+        50,
+        53
+      ],
+      "origin_faction_id": 31,
+      "origin_faction_name": "顏良",
+      "area_pixels": 384
+    },
+    {
+      "id": 32,
+      "name": "河間國",
+      "color_hex": "#796015",
+      "region": "冀州",
+      "region_id": 6,
+      "mobilization": 18,
+      "traffic": 0.8,
+      "neighbors": [
+        24,
+        29,
+        31,
+        35,
+        38,
+        41
+      ],
+      "origin_faction_id": 32,
+      "origin_faction_name": "張郃",
+      "area_pixels": 249
+    },
+    {
+      "id": 33,
+      "name": "清河國",
+      "color_hex": "#DCB43B",
+      "region": "冀州",
+      "region_id": 6,
+      "mobilization": 20,
+      "traffic": 1.0,
+      "neighbors": [
+        14,
+        15,
+        17,
+        28,
+        34,
+        35
+      ],
+      "origin_faction_id": 33,
+      "origin_faction_name": "田豐",
+      "area_pixels": 138
+    },
+    {
+      "id": 34,
+      "name": "趙國",
+      "color_hex": "#AD891E",
+      "region": "冀州",
+      "region_id": 6,
+      "mobilization": 20,
+      "traffic": 0.6,
+      "neighbors": [
+        28,
+        29,
+        30,
+        33,
+        35,
+        48
+      ],
+      "origin_faction_id": 34,
+      "origin_faction_name": "沮授",
+      "area_pixels": 230
+    },
+    {
+      "id": 35,
+      "name": "勃海郡",
+      "color_hex": "#E6C974",
+      "region": "冀州",
+      "region_id": 6,
+      "mobilization": 25,
+      "traffic": 1.0,
+      "neighbors": [
+        17,
+        24,
+        29,
+        32,
+        33,
+        34
+      ],
+      "origin_faction_id": 35,
+      "origin_faction_name": "袁紹",
+      "area_pixels": 151
+    },
+    {
+      "id": 36,
+      "name": "安平國",
+      "color_hex": "#222FC3",
+      "region": "幽州",
+      "region_id": 7,
+      "mobilization": 18,
+      "traffic": 0.8,
+      "neighbors": [
+        40,
+        41,
+        42,
+        43
+      ],
+      "origin_faction_id": 36,
+      "origin_faction_name": "張角",
+      "area_pixels": 135
+    },
+    {
+      "id": 37,
+      "name": "涿郡",
+      "color_hex": "#5A65E1",
+      "region": "幽州",
+      "region_id": 7,
+      "mobilization": 20,
+      "traffic": 1.0,
+      "neighbors": [
+        31,
+        38,
+        39,
+        40,
+        41
+      ],
+      "origin_faction_id": 37,
+      "origin_faction_name": "漢昭烈",
+      "area_pixels": 252
+    },
+    {
+      "id": 38,
+      "name": "廣陽郡",
+      "color_hex": "#1A2597",
+      "region": "幽州",
+      "region_id": 7,
+      "mobilization": 25,
+      "traffic": 1.0,
+      "neighbors": [
+        31,
+        32,
+        37,
+        41
+      ],
+      "origin_faction_id": 38,
+      "origin_faction_name": "劉虞",
+      "area_pixels": 116
+    },
+    {
+      "id": 39,
+      "name": "代郡",
+      "color_hex": "#858DE9",
+      "region": "幽州",
+      "region_id": 7,
+      "mobilization": 15,
+      "traffic": 0.4,
+      "neighbors": [
+        31,
+        37,
+        40,
+        53,
+        115,
+        135
+      ],
+      "origin_faction_id": 39,
+      "origin_faction_name": "滿寵",
+      "area_pixels": 707
+    },
+    {
+      "id": 40,
+      "name": "上谷郡",
+      "color_hex": "#151D79",
+      "region": "幽州",
+      "region_id": 7,
+      "mobilization": 15,
+      "traffic": 0.4,
+      "neighbors": [
+        36,
+        37,
+        39,
+        41,
+        43,
+        113,
+        115
+      ],
+      "origin_faction_id": 40,
+      "origin_faction_name": "閻柔",
+      "area_pixels": 755
+    },
+    {
+      "id": 41,
+      "name": "漁陽郡",
+      "color_hex": "#3B49DC",
+      "region": "幽州",
+      "region_id": 7,
+      "mobilization": 18,
+      "traffic": 0.8,
+      "neighbors": [
+        32,
+        36,
+        37,
+        38,
+        40
+      ],
+      "origin_faction_id": 41,
+      "origin_faction_name": "田疇",
+      "area_pixels": 438
+    },
+    {
+      "id": 42,
+      "name": "右北平郡",
+      "color_hex": "#1E2AAD",
+      "region": "幽州",
+      "region_id": 7,
+      "mobilization": 15,
+      "traffic": 0.4,
+      "neighbors": [
+        36,
+        43
+      ],
+      "origin_faction_id": 42,
+      "origin_faction_name": "公孫瓚",
+      "area_pixels": 230
+    },
+    {
+      "id": 43,
+      "name": "遼西郡",
+      "color_hex": "#747DE6",
+      "region": "幽州",
+      "region_id": 7,
+      "mobilization": 15,
+      "traffic": 0.4,
+      "neighbors": [
+        36,
+        40,
+        42,
+        44,
+        112,
+        113
+      ],
+      "origin_faction_id": 43,
+      "origin_faction_name": "田豫",
+      "area_pixels": 557
+    },
+    {
+      "id": 44,
+      "name": "遼東郡",
+      "color_hex": "#2635D8",
+      "region": "幽州",
+      "region_id": 7,
+      "mobilization": 15,
+      "traffic": 0.6,
+      "neighbors": [
+        43,
+        45,
+        112,
+        166
+      ],
+      "origin_faction_id": 44,
+      "origin_faction_name": "公孫度",
+      "area_pixels": 1574
+    },
+    {
+      "id": 45,
+      "name": "玄菟郡",
+      "color_hex": "#4855DE",
+      "region": "幽州",
+      "region_id": 7,
+      "mobilization": 13,
+      "traffic": 0.4,
+      "neighbors": [
+        44,
+        46,
+        166,
+        167,
+        174
+      ],
+      "origin_faction_id": 45,
+      "origin_faction_name": "公孫康",
+      "area_pixels": 698
+    },
+    {
+      "id": 46,
+      "name": "樂浪郡",
+      "color_hex": "#18218A",
+      "region": "幽州",
+      "region_id": 7,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        45,
+        173,
+        174,
+        176
+      ],
+      "origin_faction_id": 46,
+      "origin_faction_name": "公孫恭",
+      "area_pixels": 808
+    },
+    {
+      "id": 47,
+      "name": "上黨郡",
+      "color_hex": "#8DC322",
+      "region": "并州",
+      "region_id": 8,
+      "mobilization": 18,
+      "traffic": 0.4,
+      "neighbors": [
+        2,
+        3,
+        4,
+        28,
+        48
+      ],
+      "origin_faction_id": 47,
+      "origin_faction_name": "張楊",
+      "area_pixels": 317
+    },
+    {
+      "id": 48,
+      "name": "太原郡",
+      "color_hex": "#B4E15A",
+      "region": "并州",
+      "region_id": 8,
+      "mobilization": 18,
+      "traffic": 0.4,
+      "neighbors": [
+        4,
+        28,
+        30,
+        34,
+        47,
+        50,
+        52
+      ],
+      "origin_faction_id": 48,
+      "origin_faction_name": "王允",
+      "area_pixels": 417
+    },
+    {
+      "id": 49,
+      "name": "上郡",
+      "color_hex": "#6E971A",
+      "region": "并州",
+      "region_id": 8,
+      "mobilization": 13,
+      "traffic": 0.4,
+      "neighbors": [
+        4,
+        7,
+        8,
+        50,
+        52,
+        54,
+        79,
+        85
+      ],
+      "origin_faction_id": 49,
+      "origin_faction_name": "陳宮",
+      "area_pixels": 1450
+    },
+    {
+      "id": 50,
+      "name": "西河郡",
+      "color_hex": "#C8E985",
+      "region": "并州",
+      "region_id": 8,
+      "mobilization": 13,
+      "traffic": 0.4,
+      "neighbors": [
+        30,
+        31,
+        48,
+        49,
+        51,
+        52,
+        53,
+        54,
+        136
+      ],
+      "origin_faction_id": 50,
+      "origin_faction_name": "高順",
+      "area_pixels": 449
+    },
+    {
+      "id": 51,
+      "name": "定襄郡",
+      "color_hex": "#587915",
+      "region": "并州",
+      "region_id": 8,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        50,
+        53,
+        135,
+        136
+      ],
+      "origin_faction_id": 51,
+      "origin_faction_name": "宋憲",
+      "area_pixels": 186
+    },
+    {
+      "id": 52,
+      "name": "雁門郡",
+      "color_hex": "#A7DC3B",
+      "region": "并州",
+      "region_id": 8,
+      "mobilization": 13,
+      "traffic": 0.4,
+      "neighbors": [
+        4,
+        48,
+        49,
+        50
+      ],
+      "origin_faction_id": 52,
+      "origin_faction_name": "張遼",
+      "area_pixels": 370
+    },
+    {
+      "id": 53,
+      "name": "雲中郡",
+      "color_hex": "#7DAD1E",
+      "region": "并州",
+      "region_id": 8,
+      "mobilization": 13,
+      "traffic": 0.4,
+      "neighbors": [
+        31,
+        39,
+        50,
+        51,
+        135
+      ],
+      "origin_faction_id": 53,
+      "origin_faction_name": "魏續",
+      "area_pixels": 207
+    },
+    {
+      "id": 54,
+      "name": "五原郡",
+      "color_hex": "#C0E674",
+      "region": "并州",
+      "region_id": 8,
+      "mobilization": 25,
+      "traffic": 1.0,
+      "neighbors": [
+        49,
+        50,
+        85,
+        133,
+        134,
+        136
+      ],
+      "origin_faction_id": 54,
+      "origin_faction_name": "呂布",
+      "area_pixels": 1445
+    },
+    {
+      "id": 55,
+      "name": "南陽郡",
+      "color_hex": "#C36522",
+      "region": "荊州",
+      "region_id": 9,
+      "mobilization": 23,
+      "traffic": 0.8,
+      "neighbors": [
+        2,
+        5,
+        9,
+        10,
+        56,
+        63
+      ],
+      "origin_faction_id": 55,
+      "origin_faction_name": "黃忠",
+      "area_pixels": 395
+    },
+    {
+      "id": 56,
+      "name": "襄陽郡",
+      "color_hex": "#E1925A",
+      "region": "荊州",
+      "region_id": 9,
+      "mobilization": 25,
+      "traffic": 1.0,
+      "neighbors": [
+        5,
+        55,
+        57,
+        63,
+        87,
+        88
+      ],
+      "origin_faction_id": 56,
+      "origin_faction_name": "劉表",
+      "area_pixels": 707
+    },
+    {
+      "id": 57,
+      "name": "南郡",
+      "color_hex": "#974E1A",
+      "region": "荊州",
+      "region_id": 9,
+      "mobilization": 22,
+      "traffic": 0.8,
+      "neighbors": [
+        56,
+        58,
+        59,
+        60,
+        63,
+        88
+      ],
+      "origin_faction_id": 57,
+      "origin_faction_name": "龐統",
+      "area_pixels": 471
+    },
+    {
+      "id": 58,
+      "name": "江夏郡",
+      "color_hex": "#E9AF85",
+      "region": "荊州",
+      "region_id": 9,
+      "mobilization": 20,
+      "traffic": 0.8,
+      "neighbors": [
+        10,
+        57,
+        59,
+        63,
+        67,
+        70
+      ],
+      "origin_faction_id": 58,
+      "origin_faction_name": "黃祖",
+      "area_pixels": 804
+    },
+    {
+      "id": 59,
+      "name": "長沙郡",
+      "color_hex": "#793F15",
+      "region": "荊州",
+      "region_id": 9,
+      "mobilization": 20,
+      "traffic": 0.8,
+      "neighbors": [
+        57,
+        58,
+        60,
+        61,
+        62,
+        64,
+        70
+      ],
+      "origin_faction_id": 59,
+      "origin_faction_name": "顧雍",
+      "area_pixels": 860
+    },
+    {
+      "id": 60,
+      "name": "武陵郡",
+      "color_hex": "#DC7E3B",
+      "region": "荊州",
+      "region_id": 9,
+      "mobilization": 15,
+      "traffic": 0.4,
+      "neighbors": [
+        57,
+        59,
+        64,
+        88,
+        92
+      ],
+      "origin_faction_id": 60,
+      "origin_faction_name": "魏延",
+      "area_pixels": 670
+    },
+    {
+      "id": 61,
+      "name": "零陵郡",
+      "color_hex": "#AD5A1E",
+      "region": "荊州",
+      "region_id": 9,
+      "mobilization": 15,
+      "traffic": 0.4,
+      "neighbors": [
+        59,
+        62,
+        64,
+        71,
+        72,
+        76
+      ],
+      "origin_faction_id": 61,
+      "origin_faction_name": "蔣琬",
+      "area_pixels": 839
+    },
+    {
+      "id": 62,
+      "name": "桂陽郡",
+      "color_hex": "#E6A374",
+      "region": "荊州",
+      "region_id": 9,
+      "mobilization": 15,
+      "traffic": 0.4,
+      "neighbors": [
+        59,
+        61,
+        70,
+        71
+      ],
+      "origin_faction_id": 62,
+      "origin_faction_name": "費禕",
+      "area_pixels": 657
+    },
+    {
+      "id": 63,
+      "name": "江陵郡",
+      "color_hex": "#D87026",
+      "region": "荊州",
+      "region_id": 9,
+      "mobilization": 15,
+      "traffic": 0.4,
+      "neighbors": [
+        10,
+        55,
+        56,
+        57,
+        58
+      ],
+      "origin_faction_id": 63,
+      "origin_faction_name": "蔡冒",
+      "area_pixels": 512
+    },
+    {
+      "id": 64,
+      "name": "武陵蠻",
+      "color_hex": "#DE8748",
+      "region": "荊州",
+      "region_id": 9,
+      "mobilization": 13,
+      "traffic": 0.4,
+      "neighbors": [
+        59,
+        60,
+        61,
+        76,
+        92,
+        139
+      ],
+      "origin_faction_id": 64,
+      "origin_faction_name": "沙摩柯",
+      "area_pixels": 407
+    },
+    {
+      "id": 65,
+      "name": "九江郡",
+      "color_hex": "#C3222F",
+      "region": "揚州",
+      "region_id": 10,
+      "mobilization": 22,
+      "traffic": 0.8,
+      "neighbors": [
+        10,
+        11,
+        13,
+        19,
+        23,
+        66,
+        67
+      ],
+      "origin_faction_id": 65,
+      "origin_faction_name": "周瑜",
+      "area_pixels": 453
+    },
+    {
+      "id": 66,
+      "name": "丹陽郡",
+      "color_hex": "#E15A65",
+      "region": "揚州",
+      "region_id": 10,
+      "mobilization": 20,
+      "traffic": 0.6,
+      "neighbors": [
+        23,
+        65,
+        67,
+        69,
+        70
+      ],
+      "origin_faction_id": 66,
+      "origin_faction_name": "孫策",
+      "area_pixels": 629
+    },
+    {
+      "id": 67,
+      "name": "廬江郡",
+      "color_hex": "#971A25",
+      "region": "揚州",
+      "region_id": 10,
+      "mobilization": 20,
+      "traffic": 0.6,
+      "neighbors": [
+        10,
+        58,
+        65,
+        66,
+        70
+      ],
+      "origin_faction_id": 67,
+      "origin_faction_name": "陸遜",
+      "area_pixels": 562
+    },
+    {
+      "id": 68,
+      "name": "會稽郡",
+      "color_hex": "#E9858D",
+      "region": "揚州",
+      "region_id": 10,
+      "mobilization": 18,
+      "traffic": 0.6,
+      "neighbors": [
+        69,
+        148,
+        152,
+        155
+      ],
+      "origin_faction_id": 68,
+      "origin_faction_name": "虞翻",
+      "area_pixels": 762
+    },
+    {
+      "id": 69,
+      "name": "吳郡",
+      "color_hex": "#79151D",
+      "region": "揚州",
+      "region_id": 10,
+      "mobilization": 25,
+      "traffic": 1.0,
+      "neighbors": [
+        23,
+        66,
+        68,
+        70,
+        148,
+        155
+      ],
+      "origin_faction_id": 69,
+      "origin_faction_name": "孫權",
+      "area_pixels": 924
+    },
+    {
+      "id": 70,
+      "name": "豫章郡",
+      "color_hex": "#DC3B49",
+      "region": "揚州",
+      "region_id": 10,
+      "mobilization": 20,
+      "traffic": 0.6,
+      "neighbors": [
+        58,
+        59,
+        62,
+        66,
+        67,
+        69,
+        71,
+        149,
+        150,
+        151,
+        155
+      ],
+      "origin_faction_id": 70,
+      "origin_faction_name": "魯肅",
+      "area_pixels": 2525
+    },
+    {
+      "id": 71,
+      "name": "南海郡",
+      "color_hex": "#22C3B5",
+      "region": "交州",
+      "region_id": 11,
+      "mobilization": 25,
+      "traffic": 1.0,
+      "neighbors": [
+        61,
+        62,
+        70,
+        72,
+        151,
+        154
+      ],
+      "origin_faction_id": 71,
+      "origin_faction_name": "士燮",
+      "area_pixels": 1645
+    },
+    {
+      "id": 72,
+      "name": "蒼梧郡",
+      "color_hex": "#5AE1D6",
+      "region": "交州",
+      "region_id": 11,
+      "mobilization": 15,
+      "traffic": 0.4,
+      "neighbors": [
+        61,
+        71,
+        73,
+        74,
+        75,
+        76
+      ],
+      "origin_faction_id": 72,
+      "origin_faction_name": "吳巨",
+      "area_pixels": 970
+    },
+    {
+      "id": 73,
+      "name": "郁林郡",
+      "color_hex": "#1A978D",
+      "region": "交州",
+      "region_id": 11,
+      "mobilization": 13,
+      "traffic": 0.4,
+      "neighbors": [
+        72,
+        74,
+        75,
+        77,
+        139,
+        144,
+        146
+      ],
+      "origin_faction_id": 73,
+      "origin_faction_name": "諸葛瑾",
+      "area_pixels": 629
+    },
+    {
+      "id": 74,
+      "name": "合浦郡",
+      "color_hex": "#85E9E1",
+      "region": "交州",
+      "region_id": 11,
+      "mobilization": 13,
+      "traffic": 0.4,
+      "neighbors": [
+        72,
+        73,
+        77
+      ],
+      "origin_faction_id": 74,
+      "origin_faction_name": "薛綜",
+      "area_pixels": 260
+    },
+    {
+      "id": 75,
+      "name": "九真郡",
+      "color_hex": "#157971",
+      "region": "交州",
+      "region_id": 11,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        72,
+        73,
+        76,
+        139
+      ],
+      "origin_faction_id": 75,
+      "origin_faction_name": "士徽",
+      "area_pixels": 247
+    },
+    {
+      "id": 76,
+      "name": "日南郡",
+      "color_hex": "#3BDCCF",
+      "region": "交州",
+      "region_id": 11,
+      "mobilization": 11,
+      "traffic": 0.2,
+      "neighbors": [
+        61,
+        64,
+        72,
+        75,
+        139
+      ],
+      "origin_faction_id": 76,
+      "origin_faction_name": "士䵋",
+      "area_pixels": 366
+    },
+    {
+      "id": 77,
+      "name": "交趾郡",
+      "color_hex": "#1EADA1",
+      "region": "交州",
+      "region_id": 11,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        73,
+        74,
+        144
+      ],
+      "origin_faction_id": 77,
+      "origin_faction_name": "士壹",
+      "area_pixels": 177
+    },
+    {
+      "id": 78,
+      "name": "隴西郡",
+      "color_hex": "#228DC3",
+      "region": "涼州",
+      "region_id": 12,
+      "mobilization": 25,
+      "traffic": 1.0,
+      "neighbors": [
+        8,
+        79,
+        80,
+        81,
+        98,
+        99,
+        100
+      ],
+      "origin_faction_id": 78,
+      "origin_faction_name": "董卓",
+      "area_pixels": 502
+    },
+    {
+      "id": 79,
+      "name": "武都郡",
+      "color_hex": "#5AB4E1",
+      "region": "涼州",
+      "region_id": 12,
+      "mobilization": 13,
+      "traffic": 0.2,
+      "neighbors": [
+        8,
+        49,
+        78,
+        80,
+        85
+      ],
+      "origin_faction_id": 79,
+      "origin_faction_name": "華雄",
+      "area_pixels": 448
+    },
+    {
+      "id": 80,
+      "name": "北地郡",
+      "color_hex": "#1A6E97",
+      "region": "涼州",
+      "region_id": 12,
+      "mobilization": 13,
+      "traffic": 0.6,
+      "neighbors": [
+        78,
+        79,
+        81,
+        85,
+        133
+      ],
+      "origin_faction_id": 80,
+      "origin_faction_name": "張繡",
+      "area_pixels": 376
+    },
+    {
+      "id": 81,
+      "name": "金城郡",
+      "color_hex": "#85C8E9",
+      "region": "涼州",
+      "region_id": 12,
+      "mobilization": 13,
+      "traffic": 0.4,
+      "neighbors": [
+        78,
+        80,
+        82,
+        84,
+        98,
+        106,
+        109,
+        133
+      ],
+      "origin_faction_id": 81,
+      "origin_faction_name": "韓逐",
+      "area_pixels": 841
+    },
+    {
+      "id": 82,
+      "name": "武威郡",
+      "color_hex": "#155879",
+      "region": "涼州",
+      "region_id": 12,
+      "mobilization": 13,
+      "traffic": 0.6,
+      "neighbors": [
+        81,
+        83,
+        84,
+        133
+      ],
+      "origin_faction_id": 82,
+      "origin_faction_name": "賈詡",
+      "area_pixels": 583
+    },
+    {
+      "id": 83,
+      "name": "張掖郡",
+      "color_hex": "#3BA7DC",
+      "region": "涼州",
+      "region_id": 12,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        82,
+        84,
+        86,
+        107,
+        133
+      ],
+      "origin_faction_id": 83,
+      "origin_faction_name": "郭汜",
+      "area_pixels": 722
+    },
+    {
+      "id": 84,
+      "name": "張掖屬國",
+      "color_hex": "#1E7DAD",
+      "region": "涼州",
+      "region_id": 12,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        81,
+        82,
+        83,
+        107,
+        109
+      ],
+      "origin_faction_id": 84,
+      "origin_faction_name": "李傕",
+      "area_pixels": 604
+    },
+    {
+      "id": 85,
+      "name": "安定郡",
+      "color_hex": "#74C0E6",
+      "region": "涼州",
+      "region_id": 12,
+      "mobilization": 13,
+      "traffic": 0.6,
+      "neighbors": [
+        49,
+        54,
+        79,
+        80,
+        133
+      ],
+      "origin_faction_id": 85,
+      "origin_faction_name": "皇甫嵩",
+      "area_pixels": 275
+    },
+    {
+      "id": 86,
+      "name": "敦煌郡",
+      "color_hex": "#269DD8",
+      "region": "涼州",
+      "region_id": 12,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        83,
+        107,
+        123,
+        124,
+        133,
+        157,
+        163
+      ],
+      "origin_faction_id": 86,
+      "origin_faction_name": "馬超",
+      "area_pixels": 2954
+    },
+    {
+      "id": 87,
+      "name": "漢中郡",
+      "color_hex": "#22C39A",
+      "region": "益州",
+      "region_id": 13,
+      "mobilization": 18,
+      "traffic": 0.4,
+      "neighbors": [
+        5,
+        6,
+        8,
+        56,
+        88,
+        95,
+        99
+      ],
+      "origin_faction_id": 87,
+      "origin_faction_name": "張魯",
+      "area_pixels": 873
+    },
+    {
+      "id": 88,
+      "name": "巴郡",
+      "color_hex": "#5AE1C0",
+      "region": "益州",
+      "region_id": 13,
+      "mobilization": 18,
+      "traffic": 0.4,
+      "neighbors": [
+        56,
+        57,
+        60,
+        87,
+        89,
+        90,
+        92,
+        93,
+        95,
+        96
+      ],
+      "origin_faction_id": 88,
+      "origin_faction_name": "嚴顏",
+      "area_pixels": 2234
+    },
+    {
+      "id": 89,
+      "name": "蜀郡",
+      "color_hex": "#1A9778",
+      "region": "益州",
+      "region_id": 13,
+      "mobilization": 25,
+      "traffic": 1.0,
+      "neighbors": [
+        88,
+        90,
+        93,
+        97
+      ],
+      "origin_faction_id": 89,
+      "origin_faction_name": "劉璋",
+      "area_pixels": 489
+    },
+    {
+      "id": 90,
+      "name": "犍為郡",
+      "color_hex": "#85E9D0",
+      "region": "益州",
+      "region_id": 13,
+      "mobilization": 18,
+      "traffic": 0.4,
+      "neighbors": [
+        88,
+        89,
+        91,
+        92,
+        97,
+        138,
+        141
+      ],
+      "origin_faction_id": 90,
+      "origin_faction_name": "李嚴",
+      "area_pixels": 653
+    },
+    {
+      "id": 91,
+      "name": "越巂郡",
+      "color_hex": "#157960",
+      "region": "益州",
+      "region_id": 13,
+      "mobilization": 15,
+      "traffic": 0.4,
+      "neighbors": [
+        90,
+        94,
+        97,
+        137,
+        141
+      ],
+      "origin_faction_id": 91,
+      "origin_faction_name": "張任",
+      "area_pixels": 1125
+    },
+    {
+      "id": 92,
+      "name": "牂牁郡",
+      "color_hex": "#3BDCB4",
+      "region": "益州",
+      "region_id": 13,
+      "mobilization": 13,
+      "traffic": 0.4,
+      "neighbors": [
+        60,
+        64,
+        88,
+        90,
+        138,
+        139,
+        143,
+        146
+      ],
+      "origin_faction_id": 92,
+      "origin_faction_name": "朱雋",
+      "area_pixels": 1721
+    },
+    {
+      "id": 93,
+      "name": "陰平郡",
+      "color_hex": "#1EAD89",
+      "region": "益州",
+      "region_id": 13,
+      "mobilization": 13,
+      "traffic": 0.2,
+      "neighbors": [
+        88,
+        89,
+        95,
+        96,
+        97,
+        99
+      ],
+      "origin_faction_id": 93,
+      "origin_faction_name": "廖化",
+      "area_pixels": 345
+    },
+    {
+      "id": 94,
+      "name": "永昌郡",
+      "color_hex": "#74E6C9",
+      "region": "益州",
+      "region_id": 13,
+      "mobilization": 12,
+      "traffic": 0.2,
+      "neighbors": [
+        91,
+        97,
+        105,
+        137,
+        142
+      ],
+      "origin_faction_id": 94,
+      "origin_faction_name": "王亢",
+      "area_pixels": 1773
+    },
+    {
+      "id": 95,
+      "name": "廣漢郡",
+      "color_hex": "#26D8AC",
+      "region": "益州",
+      "region_id": 13,
+      "mobilization": 12,
+      "traffic": 0.2,
+      "neighbors": [
+        87,
+        88,
+        93,
+        96,
+        99
+      ],
+      "origin_faction_id": 95,
+      "origin_faction_name": "張昭",
+      "area_pixels": 233
+    },
+    {
+      "id": 96,
+      "name": "梓潼",
+      "color_hex": "#48DEB9",
+      "region": "益州",
+      "region_id": 13,
+      "mobilization": 13,
+      "traffic": 0.4,
+      "neighbors": [
+        88,
+        93,
+        95
+      ],
+      "origin_faction_id": 96,
+      "origin_faction_name": "鐘縣",
+      "area_pixels": 192
+    },
+    {
+      "id": 97,
+      "name": "廣漢氐",
+      "color_hex": "#C3C322",
+      "region": "氐羌",
+      "region_id": 14,
+      "mobilization": 13,
+      "traffic": 0.4,
+      "neighbors": [
+        89,
+        90,
+        91,
+        93,
+        94,
+        98,
+        99,
+        104,
+        105,
+        108,
+        110
+      ],
+      "origin_faction_id": 97,
+      "origin_faction_name": "彭符",
+      "area_pixels": 4041
+    },
+    {
+      "id": 98,
+      "name": "隴西氐",
+      "color_hex": "#E1E15A",
+      "region": "氐羌",
+      "region_id": 14,
+      "mobilization": 15,
+      "traffic": 0.4,
+      "neighbors": [
+        78,
+        81,
+        97,
+        99,
+        106,
+        108
+      ],
+      "origin_faction_id": 98,
+      "origin_faction_name": "高瑞",
+      "area_pixels": 748
+    },
+    {
+      "id": 99,
+      "name": "武都氐",
+      "color_hex": "#97971A",
+      "region": "氐羌",
+      "region_id": 14,
+      "mobilization": 13,
+      "traffic": 0.2,
+      "neighbors": [
+        8,
+        78,
+        87,
+        93,
+        95,
+        97,
+        98,
+        100
+      ],
+      "origin_faction_id": 99,
+      "origin_faction_name": "強端",
+      "area_pixels": 445
+    },
+    {
+      "id": 100,
+      "name": "略陽氐",
+      "color_hex": "#E9E985",
+      "region": "氐羌",
+      "region_id": 14,
+      "mobilization": 12,
+      "traffic": 0.2,
+      "neighbors": [
+        8,
+        78,
+        99
+      ],
+      "origin_faction_id": 100,
+      "origin_faction_name": "符健",
+      "area_pixels": 182
+    },
+    {
+      "id": 101,
+      "name": "象雄部",
+      "color_hex": "#A2C322",
+      "region": "藏羌",
+      "region_id": 15,
+      "mobilization": 11,
+      "traffic": 0.2,
+      "neighbors": [
+        103,
+        111,
+        157,
+        160
+      ],
+      "origin_faction_id": 101,
+      "origin_faction_name": "象雄王",
+      "area_pixels": 5579
+    },
+    {
+      "id": 102,
+      "name": "雅隆部",
+      "color_hex": "#C6E15A",
+      "region": "藏羌",
+      "region_id": 15,
+      "mobilization": 11,
+      "traffic": 0.2,
+      "neighbors": [
+        103,
+        105
+      ],
+      "origin_faction_id": 102,
+      "origin_faction_name": "雅隆",
+      "area_pixels": 1287
+    },
+    {
+      "id": 103,
+      "name": "衛藏部",
+      "color_hex": "#7E971A",
+      "region": "藏羌",
+      "region_id": 15,
+      "mobilization": 11,
+      "traffic": 0.2,
+      "neighbors": [
+        101,
+        102,
+        105,
+        111
+      ],
+      "origin_faction_id": 103,
+      "origin_faction_name": "衛藏",
+      "area_pixels": 3055
+    },
+    {
+      "id": 104,
+      "name": "藏東部",
+      "color_hex": "#D5E985",
+      "region": "藏羌",
+      "region_id": 15,
+      "mobilization": 11,
+      "traffic": 0.2,
+      "neighbors": [
+        97,
+        105,
+        110,
+        111
+      ],
+      "origin_faction_id": 104,
+      "origin_faction_name": "藏東豪帥",
+      "area_pixels": 1592
+    },
+    {
+      "id": 105,
+      "name": "藏南部",
+      "color_hex": "#657915",
+      "region": "藏羌",
+      "region_id": 15,
+      "mobilization": 11,
+      "traffic": 0.2,
+      "neighbors": [
+        94,
+        97,
+        102,
+        103,
+        104,
+        111
+      ],
+      "origin_faction_id": 105,
+      "origin_faction_name": "藏南渠帥",
+      "area_pixels": 1791
+    },
+    {
+      "id": 106,
+      "name": "東羌",
+      "color_hex": "#22C372",
+      "region": "羌族",
+      "region_id": 16,
+      "mobilization": 13,
+      "traffic": 0.4,
+      "neighbors": [
+        81,
+        98,
+        108,
+        109
+      ],
+      "origin_faction_id": 106,
+      "origin_faction_name": "蛾遮塞",
+      "area_pixels": 291
+    },
+    {
+      "id": 107,
+      "name": "西羌",
+      "color_hex": "#5AE19E",
+      "region": "羌族",
+      "region_id": 16,
+      "mobilization": 12,
+      "traffic": 0.2,
+      "neighbors": [
+        83,
+        84,
+        86,
+        108,
+        109,
+        110,
+        157
+      ],
+      "origin_faction_id": 107,
+      "origin_faction_name": "徹里吉",
+      "area_pixels": 4390
+    },
+    {
+      "id": 108,
+      "name": "南羌",
+      "color_hex": "#1A9759",
+      "region": "羌族",
+      "region_id": 16,
+      "mobilization": 12,
+      "traffic": 0.2,
+      "neighbors": [
+        97,
+        98,
+        106,
+        107,
+        109,
+        110
+      ],
+      "origin_faction_id": 108,
+      "origin_faction_name": "越吉",
+      "area_pixels": 1241
+    },
+    {
+      "id": 109,
+      "name": "燒當羌",
+      "color_hex": "#85E9B7",
+      "region": "羌族",
+      "region_id": 16,
+      "mobilization": 12,
+      "traffic": 0.2,
+      "neighbors": [
+        81,
+        84,
+        106,
+        107,
+        108
+      ],
+      "origin_faction_id": 109,
+      "origin_faction_name": "芒中",
+      "area_pixels": 721
+    },
+    {
+      "id": 110,
+      "name": "先零羌",
+      "color_hex": "#157947",
+      "region": "羌族",
+      "region_id": 16,
+      "mobilization": 12,
+      "traffic": 0.2,
+      "neighbors": [
+        97,
+        104,
+        107,
+        108,
+        111,
+        157
+      ],
+      "origin_faction_id": 110,
+      "origin_faction_name": "迷當",
+      "area_pixels": 3996
+    },
+    {
+      "id": 111,
+      "name": "塘羌",
+      "color_hex": "#3BDC8C",
+      "region": "羌族",
+      "region_id": 16,
+      "mobilization": 11,
+      "traffic": 0.2,
+      "neighbors": [
+        101,
+        103,
+        104,
+        105,
+        110,
+        157
+      ],
+      "origin_faction_id": 111,
+      "origin_faction_name": "迷唐",
+      "area_pixels": 5685
+    },
+    {
+      "id": 112,
+      "name": "遼西烏桓",
+      "color_hex": "#2FC322",
+      "region": "烏桓",
+      "region_id": 17,
+      "mobilization": 25,
+      "traffic": 1.0,
+      "neighbors": [
+        43,
+        44,
+        113,
+        114,
+        115,
+        166,
+        167,
+        168,
+        169
+      ],
+      "origin_faction_id": 112,
+      "origin_faction_name": "蹋頓",
+      "area_pixels": 1209
+    },
+    {
+      "id": 113,
+      "name": "右北平烏桓",
+      "color_hex": "#65E15A",
+      "region": "烏桓",
+      "region_id": 17,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        40,
+        43,
+        112,
+        115
+      ],
+      "origin_faction_id": 113,
+      "origin_faction_name": "烏延",
+      "area_pixels": 1436
+    },
+    {
+      "id": 114,
+      "name": "上谷烏桓",
+      "color_hex": "#25971A",
+      "region": "烏桓",
+      "region_id": 17,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        112,
+        115,
+        116,
+        118,
+        169,
+        170
+      ],
+      "origin_faction_id": 114,
+      "origin_faction_name": "難樓",
+      "area_pixels": 1014
+    },
+    {
+      "id": 115,
+      "name": "代郡烏桓",
+      "color_hex": "#8DE985",
+      "region": "烏桓",
+      "region_id": 17,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        39,
+        40,
+        112,
+        113,
+        114,
+        117,
+        118,
+        131,
+        135
+      ],
+      "origin_faction_id": 115,
+      "origin_faction_name": "臣抵",
+      "area_pixels": 3664
+    },
+    {
+      "id": 116,
+      "name": "鮮卑軻比",
+      "color_hex": "#57C322",
+      "region": "鮮卑",
+      "region_id": 18,
+      "mobilization": 13,
+      "traffic": 0.6,
+      "neighbors": [
+        114,
+        118,
+        120,
+        170,
+        178
+      ],
+      "origin_faction_id": 116,
+      "origin_faction_name": "軻比能",
+      "area_pixels": 4954
+    },
+    {
+      "id": 117,
+      "name": "單于王庭",
+      "color_hex": "#87E15A",
+      "region": "鮮卑",
+      "region_id": 18,
+      "mobilization": 25,
+      "traffic": 1.0,
+      "neighbors": [
+        115,
+        118,
+        119,
+        131
+      ],
+      "origin_faction_id": 117,
+      "origin_faction_name": "檀石槐",
+      "area_pixels": 1615
+    },
+    {
+      "id": 118,
+      "name": "鮮卑拓跋",
+      "color_hex": "#44971A",
+      "region": "鮮卑",
+      "region_id": 18,
+      "mobilization": 13,
+      "traffic": 0.8,
+      "neighbors": [
+        114,
+        115,
+        116,
+        117,
+        119
+      ],
+      "origin_faction_id": 118,
+      "origin_faction_name": "拓跋氏",
+      "area_pixels": 2502
+    },
+    {
+      "id": 119,
+      "name": "鮮卑慕容",
+      "color_hex": "#A6E985",
+      "region": "鮮卑",
+      "region_id": 18,
+      "mobilization": 12,
+      "traffic": 0.8,
+      "neighbors": [
+        117,
+        118,
+        127,
+        129,
+        131,
+        132
+      ],
+      "origin_faction_id": 119,
+      "origin_faction_name": "慕容氏",
+      "area_pixels": 1570
+    },
+    {
+      "id": 120,
+      "name": "鮮卑肅慎",
+      "color_hex": "#367915",
+      "region": "鮮卑",
+      "region_id": 18,
+      "mobilization": 10,
+      "traffic": 0.2,
+      "neighbors": [
+        116,
+        178
+      ],
+      "origin_faction_id": 120,
+      "origin_faction_name": "肅慎",
+      "area_pixels": 1265
+    },
+    {
+      "id": 121,
+      "name": "北境丁零",
+      "color_hex": "#2222C3",
+      "region": "丁零",
+      "region_id": 19,
+      "mobilization": 12,
+      "traffic": 0.8,
+      "neighbors": [
+        124,
+        126,
+        128
+      ],
+      "origin_faction_id": 121,
+      "origin_faction_name": "丁零賢王",
+      "area_pixels": 2087
+    },
+    {
+      "id": 122,
+      "name": "北地丁零",
+      "color_hex": "#5A5AE1",
+      "region": "丁零",
+      "region_id": 19,
+      "mobilization": 12,
+      "traffic": 0.8,
+      "neighbors": [
+        123,
+        124,
+        165
+      ],
+      "origin_faction_id": 122,
+      "origin_faction_name": "丁零北王",
+      "area_pixels": 2075
+    },
+    {
+      "id": 123,
+      "name": "西境丁零",
+      "color_hex": "#1A1A97",
+      "region": "丁零",
+      "region_id": 19,
+      "mobilization": 15,
+      "traffic": 0.8,
+      "neighbors": [
+        86,
+        122,
+        124,
+        156,
+        163,
+        165
+      ],
+      "origin_faction_id": 123,
+      "origin_faction_name": "丁零西王",
+      "area_pixels": 2433
+    },
+    {
+      "id": 124,
+      "name": "丁零王廷",
+      "color_hex": "#8585E9",
+      "region": "丁零",
+      "region_id": 19,
+      "mobilization": 25,
+      "traffic": 1.0,
+      "neighbors": [
+        86,
+        121,
+        122,
+        123,
+        125,
+        126,
+        133,
+        165
+      ],
+      "origin_faction_id": 124,
+      "origin_faction_name": "丁零王",
+      "area_pixels": 3281
+    },
+    {
+      "id": 125,
+      "name": "南境丁零",
+      "color_hex": "#151579",
+      "region": "丁零",
+      "region_id": 19,
+      "mobilization": 13,
+      "traffic": 0.8,
+      "neighbors": [
+        124,
+        126,
+        130,
+        131,
+        133
+      ],
+      "origin_faction_id": 125,
+      "origin_faction_name": "丁零南王",
+      "area_pixels": 2360
+    },
+    {
+      "id": 126,
+      "name": "東境丁零",
+      "color_hex": "#3B3BDC",
+      "region": "丁零",
+      "region_id": 19,
+      "mobilization": 12,
+      "traffic": 0.8,
+      "neighbors": [
+        121,
+        124,
+        125,
+        128,
+        130
+      ],
+      "origin_faction_id": 126,
+      "origin_faction_name": "丁零東王",
+      "area_pixels": 1069
+    },
+    {
+      "id": 127,
+      "name": "匈奴回紇部",
+      "color_hex": "#C34A22",
+      "region": "匈奴",
+      "region_id": 20,
+      "mobilization": 12,
+      "traffic": 0.8,
+      "neighbors": [
+        119,
+        128,
+        132
+      ],
+      "origin_faction_id": 127,
+      "origin_faction_name": "回紇",
+      "area_pixels": 933
+    },
+    {
+      "id": 128,
+      "name": "匈奴突厥部",
+      "color_hex": "#E17C5A",
+      "region": "匈奴",
+      "region_id": 20,
+      "mobilization": 11,
+      "traffic": 0.8,
+      "neighbors": [
+        121,
+        126,
+        127,
+        130,
+        132
+      ],
+      "origin_faction_id": 128,
+      "origin_faction_name": "突厥",
+      "area_pixels": 963
+    },
+    {
+      "id": 129,
+      "name": "單于王庭",
+      "color_hex": "#973A1A",
+      "region": "匈奴",
+      "region_id": 20,
+      "mobilization": 25,
+      "traffic": 1.0,
+      "neighbors": [
+        119,
+        131,
+        132
+      ],
+      "origin_faction_id": 129,
+      "origin_faction_name": "冒頓單于",
+      "area_pixels": 119
+    },
+    {
+      "id": 130,
+      "name": "匈奴閼氏部落",
+      "color_hex": "#E99E85",
+      "region": "匈奴",
+      "region_id": 20,
+      "mobilization": 13,
+      "traffic": 0.8,
+      "neighbors": [
+        125,
+        126,
+        128,
+        131,
+        132
+      ],
+      "origin_faction_id": 130,
+      "origin_faction_name": "匈奴皇后",
+      "area_pixels": 1449
+    },
+    {
+      "id": 131,
+      "name": "匈奴右賢王部",
+      "color_hex": "#792E15",
+      "region": "匈奴",
+      "region_id": 20,
+      "mobilization": 13,
+      "traffic": 0.8,
+      "neighbors": [
+        115,
+        117,
+        119,
+        125,
+        129,
+        130,
+        132,
+        133,
+        134,
+        135
+      ],
+      "origin_faction_id": 131,
+      "origin_faction_name": "右賢王",
+      "area_pixels": 5202
+    },
+    {
+      "id": 132,
+      "name": "匈奴左賢王部",
+      "color_hex": "#DC643B",
+      "region": "匈奴",
+      "region_id": 20,
+      "mobilization": 12,
+      "traffic": 0.8,
+      "neighbors": [
+        119,
+        127,
+        128,
+        129,
+        130,
+        131
+      ],
+      "origin_faction_id": 132,
+      "origin_faction_name": "左賢王",
+      "area_pixels": 2561
+    },
+    {
+      "id": 133,
+      "name": "漢南匈奴部",
+      "color_hex": "#C33D22",
+      "region": "南匈奴",
+      "region_id": 21,
+      "mobilization": 11,
+      "traffic": 0.2,
+      "neighbors": [
+        54,
+        80,
+        81,
+        82,
+        83,
+        85,
+        86,
+        124,
+        125,
+        131,
+        134
+      ],
+      "origin_faction_id": 133,
+      "origin_faction_name": "呼廚泉",
+      "area_pixels": 4177
+    },
+    {
+      "id": 134,
+      "name": "漢左賢王部",
+      "color_hex": "#E1705A",
+      "region": "南匈奴",
+      "region_id": 21,
+      "mobilization": 13,
+      "traffic": 0.4,
+      "neighbors": [
+        54,
+        131,
+        133,
+        135,
+        136
+      ],
+      "origin_faction_id": 134,
+      "origin_faction_name": "劉豹",
+      "area_pixels": 1605
+    },
+    {
+      "id": 135,
+      "name": "漢右賢王部",
+      "color_hex": "#972F1A",
+      "region": "南匈奴",
+      "region_id": 21,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        39,
+        51,
+        53,
+        115,
+        131,
+        134,
+        136
+      ],
+      "origin_faction_id": 135,
+      "origin_faction_name": "去卑",
+      "area_pixels": 923
+    },
+    {
+      "id": 136,
+      "name": "漢匈奴王部",
+      "color_hex": "#E99685",
+      "region": "南匈奴",
+      "region_id": 21,
+      "mobilization": 25,
+      "traffic": 1.0,
+      "neighbors": [
+        50,
+        51,
+        54,
+        134,
+        135
+      ],
+      "origin_faction_id": 136,
+      "origin_faction_name": "於夫羅",
+      "area_pixels": 253
+    },
+    {
+      "id": 137,
+      "name": "禿龍蠻",
+      "color_hex": "#C3B522",
+      "region": "南蠻",
+      "region_id": 22,
+      "mobilization": 13,
+      "traffic": 0.4,
+      "neighbors": [
+        91,
+        94,
+        138,
+        141,
+        142,
+        143,
+        145,
+        146
+      ],
+      "origin_faction_id": 137,
+      "origin_faction_name": "朵思大王",
+      "area_pixels": 1758
+    },
+    {
+      "id": 138,
+      "name": "犍為蠻",
+      "color_hex": "#E1D65A",
+      "region": "南蠻",
+      "region_id": 22,
+      "mobilization": 13,
+      "traffic": 0.4,
+      "neighbors": [
+        90,
+        92,
+        137,
+        141,
+        143
+      ],
+      "origin_faction_id": 138,
+      "origin_faction_name": "帶來洞主",
+      "area_pixels": 719
+    },
+    {
+      "id": 139,
+      "name": "五溪蠻",
+      "color_hex": "#978D1A",
+      "region": "南蠻",
+      "region_id": 22,
+      "mobilization": 13,
+      "traffic": 0.4,
+      "neighbors": [
+        64,
+        73,
+        75,
+        76,
+        92,
+        146
+      ],
+      "origin_faction_id": 139,
+      "origin_faction_name": "兀突骨",
+      "area_pixels": 708
+    },
+    {
+      "id": 140,
+      "name": "哀牢蠻",
+      "color_hex": "#E9E185",
+      "region": "南蠻",
+      "region_id": 22,
+      "mobilization": 25,
+      "traffic": 1.0,
+      "neighbors": [
+        142
+      ],
+      "origin_faction_id": 140,
+      "origin_faction_name": "孟獲",
+      "area_pixels": 324
+    },
+    {
+      "id": 141,
+      "name": "滇池蠻",
+      "color_hex": "#797115",
+      "region": "南蠻",
+      "region_id": 22,
+      "mobilization": 12,
+      "traffic": 0.2,
+      "neighbors": [
+        90,
+        91,
+        137,
+        138
+      ],
+      "origin_faction_id": 141,
+      "origin_faction_name": "祝融夫人",
+      "area_pixels": 272
+    },
+    {
+      "id": 142,
+      "name": "句町蠻",
+      "color_hex": "#DCCF3B",
+      "region": "南蠻",
+      "region_id": 22,
+      "mobilization": 12,
+      "traffic": 0.2,
+      "neighbors": [
+        94,
+        137,
+        140
+      ],
+      "origin_faction_id": 142,
+      "origin_faction_name": "孟優",
+      "area_pixels": 613
+    },
+    {
+      "id": 143,
+      "name": "夜郎蠻",
+      "color_hex": "#ADA11E",
+      "region": "南蠻",
+      "region_id": 22,
+      "mobilization": 12,
+      "traffic": 0.2,
+      "neighbors": [
+        92,
+        137,
+        138,
+        146
+      ],
+      "origin_faction_id": 143,
+      "origin_faction_name": "木鹿大王",
+      "area_pixels": 296
+    },
+    {
+      "id": 144,
+      "name": "西甌蠻",
+      "color_hex": "#E6DC74",
+      "region": "南蠻",
+      "region_id": 22,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        73,
+        77,
+        146
+      ],
+      "origin_faction_id": 144,
+      "origin_faction_name": "譯吁宋",
+      "area_pixels": 387
+    },
+    {
+      "id": 145,
+      "name": "滇越蠻",
+      "color_hex": "#D8C926",
+      "region": "南蠻",
+      "region_id": 22,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        137,
+        146
+      ],
+      "origin_faction_id": 145,
+      "origin_faction_name": "滇越王",
+      "area_pixels": 465
+    },
+    {
+      "id": 146,
+      "name": "雒越蠻",
+      "color_hex": "#DED248",
+      "region": "南蠻",
+      "region_id": 22,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        73,
+        92,
+        137,
+        139,
+        143,
+        144,
+        145
+      ],
+      "origin_faction_id": 146,
+      "origin_faction_name": "雒越王",
+      "area_pixels": 515
+    },
+    {
+      "id": 147,
+      "name": "閩越殘部",
+      "color_hex": "#C322B5",
+      "region": "百越",
+      "region_id": 23,
+      "mobilization": 12,
+      "traffic": 0.2,
+      "neighbors": [
+        150,
+        152,
+        153
+      ],
+      "origin_faction_id": 147,
+      "origin_faction_name": "費棧",
+      "area_pixels": 259
+    },
+    {
+      "id": 148,
+      "name": "東甌山越",
+      "color_hex": "#E15AD6",
+      "region": "百越",
+      "region_id": 23,
+      "mobilization": 12,
+      "traffic": 0.2,
+      "neighbors": [
+        68,
+        69,
+        155
+      ],
+      "origin_faction_id": 148,
+      "origin_faction_name": "潘臨",
+      "area_pixels": 173
+    },
+    {
+      "id": 149,
+      "name": "山越本部",
+      "color_hex": "#971A8D",
+      "region": "百越",
+      "region_id": 23,
+      "mobilization": 13,
+      "traffic": 0.2,
+      "neighbors": [
+        70,
+        150,
+        152,
+        155
+      ],
+      "origin_faction_id": 149,
+      "origin_faction_name": "嚴白虎",
+      "area_pixels": 428
+    },
+    {
+      "id": 150,
+      "name": "閩中山越",
+      "color_hex": "#E985E1",
+      "region": "百越",
+      "region_id": 23,
+      "mobilization": 12,
+      "traffic": 0.2,
+      "neighbors": [
+        70,
+        147,
+        149,
+        151,
+        152,
+        153
+      ],
+      "origin_faction_id": 150,
+      "origin_faction_name": "金奇",
+      "area_pixels": 315
+    },
+    {
+      "id": 151,
+      "name": "閩南山越",
+      "color_hex": "#791571",
+      "region": "百越",
+      "region_id": 23,
+      "mobilization": 12,
+      "traffic": 0.2,
+      "neighbors": [
+        70,
+        71,
+        150,
+        153,
+        154
+      ],
+      "origin_faction_id": 151,
+      "origin_faction_name": "毛甘",
+      "area_pixels": 333
+    },
+    {
+      "id": 152,
+      "name": "閩北山越",
+      "color_hex": "#DC3BCF",
+      "region": "百越",
+      "region_id": 23,
+      "mobilization": 12,
+      "traffic": 0.2,
+      "neighbors": [
+        68,
+        147,
+        149,
+        150,
+        155
+      ],
+      "origin_faction_id": 152,
+      "origin_faction_name": "尤突",
+      "area_pixels": 267
+    },
+    {
+      "id": 153,
+      "name": "閩西山越",
+      "color_hex": "#AD1EA1",
+      "region": "百越",
+      "region_id": 23,
+      "mobilization": 12,
+      "traffic": 0.2,
+      "neighbors": [
+        147,
+        150,
+        151,
+        154
+      ],
+      "origin_faction_id": 153,
+      "origin_faction_name": "彭虎",
+      "area_pixels": 216
+    },
+    {
+      "id": 154,
+      "name": "閩漳山越",
+      "color_hex": "#E674DC",
+      "region": "百越",
+      "region_id": 23,
+      "mobilization": 12,
+      "traffic": 0.2,
+      "neighbors": [
+        71,
+        151,
+        153
+      ],
+      "origin_faction_id": 154,
+      "origin_faction_name": "彭綺",
+      "area_pixels": 220
+    },
+    {
+      "id": 155,
+      "name": "西甌山越",
+      "color_hex": "#D826C9",
+      "region": "百越",
+      "region_id": 23,
+      "mobilization": 11,
+      "traffic": 0.2,
+      "neighbors": [
+        68,
+        69,
+        70,
+        148,
+        149,
+        152
+      ],
+      "origin_faction_id": 155,
+      "origin_faction_name": "蒙多",
+      "area_pixels": 286
+    },
+    {
+      "id": 156,
+      "name": "車師國",
+      "color_hex": "#C38822",
+      "region": "西域",
+      "region_id": 24,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        123,
+        157,
+        162,
+        163,
+        165
+      ],
+      "origin_faction_id": 156,
+      "origin_faction_name": "卑君",
+      "area_pixels": 1585
+    },
+    {
+      "id": 157,
+      "name": "焉耆國",
+      "color_hex": "#E1B05A",
+      "region": "西域",
+      "region_id": 24,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        86,
+        101,
+        107,
+        110,
+        111,
+        156,
+        158,
+        160,
+        162,
+        163,
+        164,
+        165
+      ],
+      "origin_faction_id": 157,
+      "origin_faction_name": "龍突",
+      "area_pixels": 7881
+    },
+    {
+      "id": 158,
+      "name": "龜茲國",
+      "color_hex": "#97691A",
+      "region": "西域",
+      "region_id": 24,
+      "mobilization": 13,
+      "traffic": 0.4,
+      "neighbors": [
+        157,
+        159,
+        160,
+        161,
+        164
+      ],
+      "origin_faction_id": 158,
+      "origin_faction_name": "白霸",
+      "area_pixels": 2267
+    },
+    {
+      "id": 159,
+      "name": "疏勒國",
+      "color_hex": "#E9C485",
+      "region": "西域",
+      "region_id": 24,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        158,
+        160,
+        161
+      ],
+      "origin_faction_id": 159,
+      "origin_faction_name": "和得",
+      "area_pixels": 1969
+    },
+    {
+      "id": 160,
+      "name": "于闐國",
+      "color_hex": "#795415",
+      "region": "西域",
+      "region_id": 24,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        101,
+        157,
+        158,
+        159
+      ],
+      "origin_faction_id": 160,
+      "origin_faction_name": "位侍",
+      "area_pixels": 4149
+    },
+    {
+      "id": 161,
+      "name": "莎車國",
+      "color_hex": "#DCA13B",
+      "region": "西域",
+      "region_id": 24,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        158,
+        159
+      ],
+      "origin_faction_id": 161,
+      "origin_faction_name": "莎車王",
+      "area_pixels": 1201
+    },
+    {
+      "id": 162,
+      "name": "樓蘭國",
+      "color_hex": "#AD791E",
+      "region": "西域",
+      "region_id": 24,
+      "mobilization": 11,
+      "traffic": 0.2,
+      "neighbors": [
+        156,
+        157,
+        163
+      ],
+      "origin_faction_id": 162,
+      "origin_faction_name": "鄯善王",
+      "area_pixels": 1188
+    },
+    {
+      "id": 163,
+      "name": "伊吾國",
+      "color_hex": "#E6BC74",
+      "region": "西域",
+      "region_id": 24,
+      "mobilization": 11,
+      "traffic": 0.2,
+      "neighbors": [
+        86,
+        123,
+        156,
+        157,
+        162
+      ],
+      "origin_faction_id": 163,
+      "origin_faction_name": "伊吾王",
+      "area_pixels": 2457
+    },
+    {
+      "id": 164,
+      "name": "烏孫國",
+      "color_hex": "#D89726",
+      "region": "西域",
+      "region_id": 24,
+      "mobilization": 13,
+      "traffic": 0.4,
+      "neighbors": [
+        157,
+        158,
+        165
+      ],
+      "origin_faction_id": 164,
+      "origin_faction_name": "獵驕靡",
+      "area_pixels": 1074
+    },
+    {
+      "id": 165,
+      "name": "康居都護",
+      "color_hex": "#DEA748",
+      "region": "西域",
+      "region_id": 24,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        122,
+        123,
+        124,
+        156,
+        157,
+        164
+      ],
+      "origin_faction_id": 165,
+      "origin_faction_name": "康居王",
+      "area_pixels": 4909
+    },
+    {
+      "id": 166,
+      "name": "蘇僕高句麗",
+      "color_hex": "#22C33D",
+      "region": "高句麗",
+      "region_id": 25,
+      "mobilization": 13,
+      "traffic": 0.4,
+      "neighbors": [
+        44,
+        45,
+        112,
+        167
+      ],
+      "origin_faction_id": 166,
+      "origin_faction_name": "蘇僕延",
+      "area_pixels": 290
+    },
+    {
+      "id": 167,
+      "name": "高句麗本部",
+      "color_hex": "#5AE170",
+      "region": "高句麗",
+      "region_id": 25,
+      "mobilization": 13,
+      "traffic": 0.4,
+      "neighbors": [
+        45,
+        112,
+        166,
+        168,
+        172,
+        174
+      ],
+      "origin_faction_id": 167,
+      "origin_faction_name": "高宮王",
+      "area_pixels": 195
+    },
+    {
+      "id": 168,
+      "name": "夷模高句麗",
+      "color_hex": "#1A972F",
+      "region": "高句麗",
+      "region_id": 25,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        112,
+        167,
+        169,
+        171,
+        172,
+        173
+      ],
+      "origin_faction_id": 168,
+      "origin_faction_name": "伊夷模",
+      "area_pixels": 400
+    },
+    {
+      "id": 169,
+      "name": "卒本高句麗",
+      "color_hex": "#85E996",
+      "region": "高句麗",
+      "region_id": 25,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        112,
+        114,
+        168,
+        170,
+        171
+      ],
+      "origin_faction_id": 169,
+      "origin_faction_name": "朱蒙",
+      "area_pixels": 519
+    },
+    {
+      "id": 170,
+      "name": "鴨綠高句麗",
+      "color_hex": "#157926",
+      "region": "高句麗",
+      "region_id": 25,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        114,
+        116,
+        169,
+        171,
+        175,
+        178
+      ],
+      "origin_faction_id": 170,
+      "origin_faction_name": "伯固",
+      "area_pixels": 830
+    },
+    {
+      "id": 171,
+      "name": "濊貊高句麗",
+      "color_hex": "#3BDC56",
+      "region": "高句麗",
+      "region_id": 25,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        168,
+        169,
+        170,
+        173,
+        175
+      ],
+      "origin_faction_id": 171,
+      "origin_faction_name": "濊貊",
+      "area_pixels": 422
+    },
+    {
+      "id": 172,
+      "name": "夫餘本部",
+      "color_hex": "#9A22C3",
+      "region": "夫餘",
+      "region_id": 26,
+      "mobilization": 13,
+      "traffic": 0.6,
+      "neighbors": [
+        167,
+        168,
+        173,
+        174
+      ],
+      "origin_faction_id": 172,
+      "origin_faction_name": "東明王",
+      "area_pixels": 363
+    },
+    {
+      "id": 173,
+      "name": "東夫餘",
+      "color_hex": "#C05AE1",
+      "region": "夫餘",
+      "region_id": 26,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        46,
+        168,
+        171,
+        172,
+        174,
+        175,
+        176,
+        177,
+        181,
+        182
+      ],
+      "origin_faction_id": 173,
+      "origin_faction_name": "簡位居",
+      "area_pixels": 950
+    },
+    {
+      "id": 174,
+      "name": "南夫餘",
+      "color_hex": "#781A97",
+      "region": "夫餘",
+      "region_id": 26,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        45,
+        46,
+        167,
+        172,
+        173
+      ],
+      "origin_faction_id": 174,
+      "origin_faction_name": "麻余",
+      "area_pixels": 477
+    },
+    {
+      "id": 175,
+      "name": "北夫餘",
+      "color_hex": "#D085E9",
+      "region": "夫餘",
+      "region_id": 26,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        170,
+        171,
+        173,
+        178,
+        181
+      ],
+      "origin_faction_id": 175,
+      "origin_faction_name": "延優",
+      "area_pixels": 769
+    },
+    {
+      "id": 176,
+      "name": "挹婁南境",
+      "color_hex": "#4A22C3",
+      "region": "挹婁",
+      "region_id": 27,
+      "mobilization": 12,
+      "traffic": 0.4,
+      "neighbors": [
+        46,
+        173,
+        179,
+        182
+      ],
+      "origin_faction_id": 176,
+      "origin_faction_name": "祚榮",
+      "area_pixels": 1225
+    },
+    {
+      "id": 177,
+      "name": "岩花挹婁",
+      "color_hex": "#7C5AE1",
+      "region": "挹婁",
+      "region_id": 27,
+      "mobilization": 11,
+      "traffic": 0.2,
+      "neighbors": [
+        173,
+        179,
+        180,
+        181,
+        182
+      ],
+      "origin_faction_id": 177,
+      "origin_faction_name": "長風",
+      "area_pixels": 746
+    },
+    {
+      "id": 178,
+      "name": "北境挹婁",
+      "color_hex": "#3A1A97",
+      "region": "挹婁",
+      "region_id": 27,
+      "mobilization": 10,
+      "traffic": 0.2,
+      "neighbors": [
+        116,
+        120,
+        170,
+        175,
+        181
+      ],
+      "origin_faction_id": 178,
+      "origin_faction_name": "蘇那",
+      "area_pixels": 1418
+    },
+    {
+      "id": 179,
+      "name": "東境挹婁",
+      "color_hex": "#9E85E9",
+      "region": "挹婁",
+      "region_id": 27,
+      "mobilization": 11,
+      "traffic": 0.2,
+      "neighbors": [
+        176,
+        177,
+        182
+      ],
+      "origin_faction_id": 179,
+      "origin_faction_name": "青石",
+      "area_pixels": 414
+    },
+    {
+      "id": 180,
+      "name": "濱花挹婁",
+      "color_hex": "#2E1579",
+      "region": "挹婁",
+      "region_id": 27,
+      "mobilization": 11,
+      "traffic": 0.2,
+      "neighbors": [
+        177,
+        181
+      ],
+      "origin_faction_id": 180,
+      "origin_faction_name": "楛矢",
+      "area_pixels": 254
+    },
+    {
+      "id": 181,
+      "name": "松花挹婁",
+      "color_hex": "#643BDC",
+      "region": "挹婁",
+      "region_id": 27,
+      "mobilization": 11,
+      "traffic": 0.2,
+      "neighbors": [
+        173,
+        175,
+        177,
+        178,
+        180
+      ],
+      "origin_faction_id": 181,
+      "origin_faction_name": "石砮",
+      "area_pixels": 635
+    },
+    {
+      "id": 182,
+      "name": "挹婁王廷",
+      "color_hex": "#421EAD",
+      "region": "挹婁",
+      "region_id": 27,
+      "mobilization": 25,
+      "traffic": 1.0,
+      "neighbors": [
+        173,
+        176,
+        177,
+        179
+      ],
+      "origin_faction_id": 182,
+      "origin_faction_name": "挹婁王",
+      "area_pixels": 125
+    }
+  ]
+}
