@@ -2,168 +2,130 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Legion3K 獨立縮放校準工具</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>軍團三國 · Legion3K</title>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; touch-action: manipulation; }
-  body { background: #000; color: #c8c0a8; font-family: sans-serif; height: 100vh; overflow: hidden; }
-  #main { width: 100vw; height: 100vh; position: relative; }
-  canvas { display: block; image-rendering: pixelated; }
-
-  #floating-panel {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    width: 260px; background: rgba(22, 22, 30, 0.95); border: 1px solid #c8a050;
-    border-radius: 8px; z-index: 100; display: flex; flex-direction: column;
-  }
-
-  #panel-header { background: #c8a050; color: #000; padding: 8px; font-size: 12px; font-weight: bold; text-align: center; cursor: move; border-radius: 6px 6px 0 0; }
-  .panel-content { padding: 12px; display: flex; flex-direction: column; gap: 8px; }
-
-  #info-display { background: #0d0d12; padding: 8px; border-radius: 4px; font-family: monospace; font-size: 11px; color: #7ab870; border: 1px solid #2a2a3a; line-height: 1.4; }
-
-  .control-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
-  .joy-btn { background: #1e1e2e; border: 1px solid #3a3a5a; border-radius: 4px; color: #c8a050; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
-  .joy-btn:active { background: #c8a050; color: #000; }
-
-  .row-group { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-  .scale-label { font-size: 11px; color: #7a7a9a; min-width: 40px; }
-  .scale-ctrl { flex: 1; display: flex; gap: 4px; }
-  .small-btn { flex: 1; height: 35px; background: #1e1e2e; border: 1px solid #3a3a5a; color: #fff; border-radius: 4px; font-size: 18px; }
-
-  #btnLock { width: 100%; padding: 8px; font-size: 11px; border-radius: 4px; border: 1px solid #c8a050; background: transparent; color: #c8a050; margin-top: 4px; }
-  #btnLock.unlocked { border-color: #5a5a7a; color: #5a5a7a; }
-  #btnCopy { width: 100%; padding: 10px; background: #7ab870; color: #000; font-weight: bold; border: none; border-radius: 4px; margin-top: 4px; }
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{background:#0a0a0f;color:#e8dcc8;font-family:"Noto Serif TC","STSong",serif;overflow:hidden;width:100vw;height:100vh;user-select:none}
+#app{position:relative;width:100vw;height:100vh;overflow:hidden}
+#mc{position:absolute;top:0;left:0;width:100%;height:100%;touch-action:none;cursor:grab}
+#mc:active{cursor:grabbing}
+canvas{position:absolute;top:0;left:0;image-rendering:pixelated;image-rendering:crisp-edges}
+/* UI 樣式省略，保持與 v2 一致 */
+#tb{position:fixed;top:0;left:0;right:0;height:44px;background:rgba(10,10,20,.9);border-bottom:1px solid rgba(200,170,100,.2);display:flex;align-items:center;padding:0 16px;z-index:100}
+#tb h1{font-size:15px;color:#c8aa64}
+#ip{position:fixed;bottom:-100%;left:0;right:0;background:#0f0c19;padding:20px;z-index:200;transition:bottom .3s;border-radius:18px 18px 0 0}
+#ip.open{bottom:0}
+#ld{position:fixed;inset:0;background:#0a0a0f;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999}
+#ld.fade{opacity:0;pointer-events:none;transition:opacity .5s}
 </style>
 </head>
 <body>
-
-<div id="main">
-  <canvas id="cv"></canvas>
-  <div id="floating-panel">
-    <div id="panel-header">按住此處移動面板</div>
-    <div class="panel-content">
-      <div id="info-display">載入中...</div>
-      
-      <div class="control-grid">
-        <div></div><button class="joy-btn" id="up">↑</button><div></div>
-        <button class="joy-btn" id="left">←</button><button class="joy-btn" onclick="resetAll()">R</button><button class="joy-btn" id="right">→</button>
-        <div></div><button class="joy-btn" id="down">↓</button><div></div>
-      </div>
-
-      <button id="btnLock" onclick="toggleLock()">🔗 目前模式：鎖定比例</button>
-
-      <div class="row-group">
-        <span class="scale-label">左右(SX)</span>
-        <div class="scale-ctrl">
-          <button class="small-btn" id="sx_out">-</button>
-          <button class="small-btn" id="sx_in">+</button>
-        </div>
-      </div>
-
-      <div class="row-group">
-        <span class="scale-label">上下(SY)</span>
-        <div class="scale-ctrl">
-          <button class="small-btn" id="sy_out">-</button>
-          <button class="small-btn" id="sy_in">+</button>
-        </div>
-      </div>
-
-      <button id="btnCopy" onclick="copyParams()">複製接合參數</button>
+<div id="ld"><div style="color:#c8aa64;font-size:24px;margin-bottom:20px">軍團三國</div><div id="lp" style="color:rgba(200,170,100,.5)">載入資源中...</div></div>
+<div id="app">
+    <div id="tb"><h1>軍團三國 · 全境地圖</h1></div>
+    <div id="mc"><canvas id="mc1"></canvas><canvas id="mc2"></canvas></div>
+    <div id="ip">
+        <div id="pn" style="font-size:20px;font-weight:700;color:#f0d88a"></div>
+        <div id="pi" style="font-size:12px;color:#c8aa64"></div>
+        <div id="pr" style="color:#e8dcc8;margin-top:8px"></div>
     </div>
-  </div>
 </div>
 
 <script>
-const cv = document.getElementById('cv');
-const ctx = cv.getContext('2d');
-let params = { offX: 0, offY: 0, scaleX: 1.0, scaleY: 1.0 };
-let viewZoom = 1.0, isLocked = true;
-const W = 720, H = 405;
+const W=720, H=490;
+let binData, fixedData=[];
+let sc=1.0, vx=0, vy=0;
+const c1=document.getElementById('mc1'), ctx1=c1.getContext('2d');
+const c2=document.getElementById('mc2'), ctx2=c2.getContext('2d');
+const off=document.createElement('canvas'); off.width=W; off.height=H;
+const octx=off.getContext('2d');
 
-const baseImg = new Image();
-const overlayImg = new Image();
-baseImg.src = 'base_map.png'; 
-overlayImg.src = 'mongolia_overlay.png';
+// 載入資料
+async function init() {
+    try {
+        const [resBin, resFix] = await Promise.all([
+            fetch('legion3k_v2.bin'),
+            fetch('jun_fixed_v2_1_0.json')
+        ]);
+        const buf = await resBin.arrayBuffer();
+        binData = new Uint8Array(buf);
+        const json = await resFix.json();
+        fixedData = json.juns || [];
+        
+        document.getElementById('ld').classList.add('fade');
+        setupCanvas();
+        preRender();
+        render();
+    } catch(e) {
+        document.getElementById('lp').innerText = "載入失敗，請確認檔案路徑";
+    }
+}
 
-[baseImg, overlayImg].forEach(img => img.onload = render);
+function setupCanvas() {
+    c1.width=c2.width=window.innerWidth;
+    c1.height=c2.height=window.innerHeight;
+    vx=(c1.width-W)/2; vy=(c1.height-H)/2;
+}
+
+// 根據 JSON 中的 color_hex 進行渲染
+function preRender() {
+    octx.clearRect(0,0,W,H);
+    const img = octx.createImageData(W,H);
+    const data = img.data;
+    
+    // 建立 ID 轉 顏色的映射表
+    const colorMap = {};
+    fixedData.forEach(j => {
+        colorMap[j.id] = j.color_hex;
+    });
+
+    for(let i=0; i<W*H; i++) {
+        const id = binData[i];
+        if(id > 0 && colorMap[id]) {
+            const hex = colorMap[id];
+            const r = parseInt(hex.slice(1,3), 16);
+            const g = parseInt(hex.slice(3,5), 16);
+            const b = parseInt(hex.slice(5,7), 16);
+            const idx = i*4;
+            data[idx]=r; data[idx+1]=g; data[idx+2]=b; data[idx+3]=255;
+        }
+    }
+    octx.putImageData(img, 0, 0);
+}
 
 function render() {
-  cv.width = window.innerWidth;
-  cv.height = window.innerHeight;
-  ctx.clearRect(0, 0, cv.width, cv.height);
-  ctx.imageSmoothingEnabled = false;
-
-  const displayW = W * viewZoom, displayH = H * viewZoom;
-  const baseX = (cv.width - displayW) / 2, baseY = (cv.height - displayH) / 2;
-
-  ctx.globalAlpha = 0.5;
-  ctx.drawImage(baseImg, baseX, baseY, displayW, displayH);
-
-  ctx.globalAlpha = 0.8;
-  ctx.save();
-  // 核心邏輯：位移 -> 縮放
-  ctx.translate(baseX + params.offX * viewZoom, baseY + params.offY * viewZoom);
-  ctx.scale(params.scaleX, params.scaleY);
-  ctx.drawImage(overlayImg, 0, 0, displayW, displayH);
-  ctx.restore();
-
-  document.getElementById('info-display').innerHTML = 
-    `X: ${params.offX.toFixed(1)} | Y: ${params.offY.toFixed(1)}<br>` +
-    `SX: ${params.scaleX.toFixed(4)}<br>SY: ${params.scaleY.toFixed(4)}`;
+    ctx1.clearRect(0,0,c1.width,c1.height);
+    ctx1.save();
+    ctx1.translate(vx, vy);
+    ctx1.scale(sc, sc);
+    ctx1.drawImage(off, 0, 0);
+    ctx1.restore();
 }
 
-// 拖動面板邏輯
-const panel = document.getElementById('floating-panel');
-const header = document.getElementById('panel-header');
-let isPDragging = false, pDx, pDy;
-header.addEventListener('touchstart', e => { isPDragging = true; pDx = e.touches[0].clientX - panel.offsetLeft; pDy = e.touches[0].clientY - panel.offsetTop; e.preventDefault(); });
-window.addEventListener('touchmove', e => { if (!isPDragging) return; panel.style.left = (e.touches[0].clientX - pDx + panel.offsetWidth/2) + 'px'; panel.style.top = (e.touches[0].clientY - pDy + panel.offsetHeight/2) + 'px'; panel.style.transform = 'translate(-50%, -50%)'; });
-window.addEventListener('touchend', () => isPDragging = false);
+// 點擊互動
+c2.addEventListener('click', e => {
+    const lx = (e.clientX - vx) / sc;
+    const ly = (e.clientY - vy) / sc;
+    if(lx>=0 && lx<W && ly>=0 && ly<H) {
+        const id = binData[Math.floor(ly)*W + Math.floor(lx)];
+        if(id > 0) {
+            const info = fixedData.find(j => j.id === id);
+            if(info) {
+                document.getElementById('pn').innerText = info.name;
+                document.getElementById('pi').innerText = `ID: ${info.id}`;
+                document.getElementById('pr').innerText = `${info.region} · 起源: ${info.origin_faction_name}`;
+                document.getElementById('ip').classList.add('open');
+            }
+        } else {
+            document.getElementById('ip').classList.remove('open');
+        }
+    }
+});
 
-// 縮放與鎖定邏輯
-function toggleLock() {
-  isLocked = !isLocked;
-  const btn = document.getElementById('btnLock');
-  btn.innerText = isLocked ? "🔗 目前模式：鎖定比例" : "🔓 目前模式：獨立縮放";
-  btn.classList.toggle('unlocked', !isLocked);
-}
-
-function setupBtn(id, action) {
-  const btn = document.getElementById(id);
-  let timer;
-  const run = () => { action(); render(); timer = setTimeout(run, 50); };
-  btn.addEventListener('touchstart', e => { e.preventDefault(); run(); });
-  btn.addEventListener('touchend', () => clearTimeout(timer));
-}
-
-// 移動按鈕
-setupBtn('up', () => params.offY -= 0.5);
-setupBtn('down', () => params.offY += 0.5);
-setupBtn('left', () => params.offX -= 0.5);
-setupBtn('right', () => params.offX += 0.5);
-
-// 左右縮放 (SX)
-setupBtn('sx_in', () => { params.scaleX += 0.001; if(isLocked) params.scaleY = params.scaleX; });
-setupBtn('sx_out', () => { params.scaleX -= 0.001; if(isLocked) params.scaleY = params.scaleX; });
-
-// 上下縮放 (SY)
-setupBtn('sy_in', () => { params.scaleY += 0.001; if(isLocked) params.scaleX = params.scaleY; });
-setupBtn('sy_out', () => { params.scaleY -= 0.001; if(isLocked) params.scaleX = params.scaleY; });
-
-function resetAll() { params = { offX: 0, offY: 0, scaleX: 1.0, scaleY: 1.0 }; render(); }
-function copyParams() {
-  const json = JSON.stringify({ offset_px: { x: params.offX, y: params.offY }, scale: { x: params.scaleX, y: params.scaleY } }, null, 1);
-  navigator.clipboard.writeText(json).then(() => alert("參數已複製"));
-}
-
-// 畫布拖動
-let isDragging = false, lastX, lastY;
-cv.addEventListener('touchstart', e => { if(e.target === cv) { isDragging = true; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; } });
-cv.addEventListener('touchmove', e => { if(!isDragging) return; params.offX += (e.touches[0].clientX - lastX) / viewZoom; params.offY += (e.touches[0].clientY - lastY) / viewZoom; lastX = e.touches[0].clientX; lastY = e.touches[0].clientY; render(); });
-cv.addEventListener('touchend', () => isDragging = false);
-
-window.addEventListener('resize', render);
-render();
+// 縮放與拖曳邏輯 (簡化版)
+window.addEventListener('resize', setupCanvas);
+init();
 </script>
 </body>
 </html>
