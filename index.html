@@ -101,7 +101,9 @@
     </div>
   </div>
 </div>
-
+</script>
+<!-- 地圖資料獨立檔案，瀏覽器可快取，改 HTML 時不需重新生成 -->
+<script src="map_data.js"></script>
 <script>
 // ── BIN_B64 is defined in map_data.js (loaded via <script> tag below) ──
 // ── JUN:郡資料（此檔內嵌，小，不需快取）──────────────────────────────
@@ -244,8 +246,6 @@ wrap.addEventListener('mouseleave',()=>document.getElementById('tip').style.disp
 window.addEventListener('resize',()=>{ fitMap(); render(); });
 
 init();
-</script>
-<!-- 地圖資料獨立檔案，瀏覽器可快取，改 HTML 時不需重新生成 -->
-<script src="map_data.js"></script>
+
 </body>
 </html>
