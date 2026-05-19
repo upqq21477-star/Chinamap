@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>軍團三國 · 地圖</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+:root{
+  --ink:#1a0f00;
+  --parch:#f5e6c8;
+  --parch2:#ede0b5;
+  --gold:#c8921a;
+  --gold2:#e8b43a;
+  --red:#8b1a1a;
+  --panel-bg:rgba(15,8,2,0.96);
+  --border:rgba(200,146,26,0.4);
+  --border-bright:rgba(200,146,26,0.85);
+  --text-main:#f0ddb0;
+  --text-sub:rgba(240,221,176,0.6);
+  --text-dim:rgba(240,221,176,0.38);
+}
+
+body{
+  background:#0c0700;
+  color:var(--text-main);
+  font-family:'Noto Serif TC',serif;
+  overflow:hidden;
+  width:100vw;height:100vh;
+  user-select:none;
+}
+
+/* ── canvas layer ── */
+#map-wrap{
+  position:fixed;inset:0;
+  cursor:grab;
+}
+#map-wrap:active{cursor:grabbing}
+canvas{
+  position:absolute;top:0;left:0;
+  image-rendering:pixelated;
+  image-rendering:crisp-edges;
+}
+#c-base{z-index:1}
+#c-ovl{z-index:2}
+#c-ui{z-index:3;pointer-events:none}
+
+/* ── top bar ── */
+#topbar{
+  position:fixed;top:0;left:0;right:0;
+  height:48px;z-index:100;
+  background:linear-gradient(180deg,rgba(10,5,0,0.98),rgba(10,5,0,0.82));
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 16px;
+  backdrop-filter:blur(8px);
+  pointer-events:none;
+}
+#topbar h1{
+  font-size:15px;letter-spacing:.35em;color:var(--gold2);
+  text-shadow:0 0 18px rgba(200,146,26,.6);
+  font-weight:700;
+  flex-shrink:0;
+}
+#topbar .sub{
+  margin-left:auto;font-size:11px;color:var(--text-dim);
+  letter-spacing:.15em;
+}
+.region-label{
+  position:fixed;top:calc(48px + 2em);left:50%;transform:translateX(-50%);
+  z-index:101;
+  background:rgba(10,5,0,0.90);
+  border:1px solid var(--border-bright);
+  border-radius:12px;
+  padding:7px 16px;
+  backdrop-filter:blur(8px);
+  opacity:1;
+  transition:opacity .28s, transform .28s;
+  box-shadow:0 4px 20px rgba(0,0,0,.5), 0 0 0 1px rgba(200,146,26,.08);
+  min-width:120px;
+  text-align:center;
+}
+.region-label.hidden{
+  opacity:0;
+  pointer-events:none;
+  transform:translateX(-50%) translateY(-8px);
+}
+.region-label-inner{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+}
+.region-label-row{
+  display:flex;align-items:center;gap:5px;
+}
+.rl-dot{
+  width:7px;height:7px;border-radius:50%;
+  flex-shrink:0;
+  box-shadow:0 0 5px currentColor;
+}
+.rl-state{
+  font-size:11px;letter-spacing:.3em;color:var(--text-dim);
+  font-weight:400;
+}
+.rl-sep{
+  width:32px;height:1px;
+  background:linear-gradient(90deg,transparent,var(--border),transparent);
+}
+.rl-county{
+  font-size:16px;font-weight:700;letter-spacing:.18em;
+  color:var(--gold2);
+  text-shadow:0 0 14px rgba(232,180,58,.45);
+  line-height:1.2;
+}
+
+/* ── zoom buttons ── */
+#zoom-ctrl{
+  position:fixed;bottom:200px;right:14px;
+  z-index:100;display:flex;flex-direction:column;gap:6px;
+}
+.zbtn{
+  width:42px;height:42px;
+  background:rgba(10,5,0,0.88);
+  border:1px solid var(--border);border-radius:10px;
+  color:var(--gold);font-size:22px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;backdrop-filter:blur(4px);
+  transition:background .18s,border-color .18s;
+  -webkit-tap-highlight-color:transparent;
+}
+.zbtn:active{background:rgba(200,146,26,.18);border-color:var(--border-bright)}
+
+/* ── info panel ── */
+#panel{
+  position:fixed;bottom:0;left:0;right:0;
+  z-index:200;
+  background:var(--panel-bg);
+  border-top:1px solid var(--border-bright);
+  border-radius:20px 20px 0 0;
+  padding:0 0 env(safe-area-inset-bottom,0);
+  transform:translateY(100%);
+  transition:transform .32s cubic-bezier(.34,1.56,.64,1);
+  box-shadow:0 -12px 48px rgba(0,0,0,.8);
+  max-height:68vh;
+  overflow:hidden;
+  display:flex;flex-direction:column;
+}
+#panel.open{transform:translateY(0)}
+
+/* handle bar */
+.handle{
+  width:40px;height:4px;border-radius:2px;
+  background:var(--border);
+  margin:14px auto 0;flex-shrink:0;
+}
+
+/* panel header */
+.ph{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:14px 18px 0;flex-shrink:0;
+}
+.ph-color{
+  width:14px;height:14px;border-radius:50%;
+  flex-shrink:0;margin-top:5px;
+  box-shadow:0 0 8px currentColor;
+}
+.ph-name{
+  font-size:22px;font-weight:700;color:var(--gold2);
+  letter-spacing:.06em;line-height:1.2;
+  text-shadow:0 0 20px rgba(232,180,58,.35);
+  flex:1;
+}
+.ph-close{
+  width:32px;height:32px;border-radius:50%;
+  background:rgba(200,146,26,.12);
+  border:1px solid var(--border);
+  color:var(--gold);font-size:16px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;flex-shrink:0;
+  transition:background .15s;
+}
+.ph-close:active{background:rgba(200,146,26,.3)}
+
+/* divider */
+.pdiv{
+  height:1px;
+  background:linear-gradient(90deg,transparent,var(--border),transparent);
+  margin:12px 18px;flex-shrink:0;
+}
+
+/* meta grid */
+.meta{
+  display:grid;grid-template-columns:1fr 1fr;gap:12px;
+  padding:0 18px;flex-shrink:0;
+}
+.meta-item{display:flex;flex-direction:column;gap:3px}
+.meta-label{font-size:10px;letter-spacing:.2em;color:var(--text-dim);text-transform:uppercase}
+.meta-val{font-size:14px;color:var(--text-main);letter-spacing:.04em}
+.meta-val.id-val{
+  font-family:monospace;color:var(--gold);font-size:13px;
+}
+
+/* region button */
+.region-btn{
+  margin:14px 18px 0;
+  padding:11px 16px;
+  background:linear-gradient(135deg,rgba(200,146,26,.12),rgba(200,146,26,.06));
+  border:1px solid var(--border);border-radius:10px;
+  color:var(--gold2);font-size:13px;letter-spacing:.12em;
+  font-family:'Noto Serif TC',serif;
+  cursor:pointer;width:calc(100% - 36px);
+  transition:background .18s,border-color .18s;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  flex-shrink:0;
+}
+.region-btn:active{background:rgba(200,146,26,.22);border-color:var(--border-bright)}
+.region-btn .arrow{
+  font-size:11px;color:var(--text-dim);
+  transition:transform .2s;
+}
+.region-btn.expanded .arrow{transform:rotate(180deg)}
+
+/* region list */
+#region-list{
+  overflow-y:auto;
+  flex:1;
+  padding:10px 18px 20px;
+}
+#region-list:empty{display:none}
+.region-header{
+  font-size:11px;letter-spacing:.2em;color:var(--text-dim);
+  margin-bottom:10px;padding-top:4px;
+}
+.rjun-grid{
+  display:grid;grid-template-columns:1fr 1fr;gap:8px;
+}
+.rjun-item{
+  background:rgba(200,146,26,.07);
+  border:1px solid var(--border);
+  border-radius:8px;padding:9px 10px;
+  cursor:pointer;
+  transition:background .15s,border-color .15s;
+}
+.rjun-item:active{background:rgba(200,146,26,.2);border-color:var(--border-bright)}
+.rjun-item .dot{
+  width:10px;height:10px;border-radius:50%;
+  display:inline-block;margin-right:5px;vertical-align:middle;
+}
+.rjun-item .rjname{font-size:13px;color:var(--text-main);vertical-align:middle}
+.rjun-item .rjfac{font-size:10px;color:var(--text-dim);margin-top:3px;letter-spacing:.04em}
+
+/* loading */
+#loading{
+  position:fixed;inset:0;z-index:999;
+  background:#0c0700;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transition:opacity .5s;
+}
+#loading.fade{opacity:0;pointer-events:none}
+#loading h2{
+  font-size:20px;letter-spacing:.4em;color:var(--gold2);
+  margin-bottom:28px;
+  text-shadow:0 0 24px rgba(200,146,26,.7);
+}
+.load-bar{width:180px;height:2px;background:rgba(200,146,26,.15);border-radius:1px;overflow:hidden}
+.load-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--gold2));animation:lfill 1.6s ease-out forwards}
+@keyframes lfill{from{width:0}to{width:100%}}
+.load-sub{margin-top:12px;font-size:11px;color:var(--text-dim);letter-spacing:.2em}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <h2>軍團三國</h2>
+  <div class="load-bar"><div class="load-fill"></div></div>
+  <div class="load-sub">載入地圖中…</div>
+</div>
+
+<div id="topbar">
+  <h1>軍團三國 · 地圖</h1>
+  <div id="region-label" class="region-label hidden">
+    <div class="region-label-inner">
+      <div class="region-label-row">
+        <span class="rl-dot" id="rl-dot"></span>
+        <span class="rl-state" id="rl-state"></span>
+      </div>
+      <div class="rl-sep"></div>
+      <div class="rl-county" id="rl-county"></div>
+    </div>
+  </div>
+  <span class="sub" id="topbar-sub">拖曳移動 · 雙指縮放</span>
+</div>
+
+<div id="map-wrap">
+  <canvas id="c-base"></canvas>
+  <canvas id="c-ovl"></canvas>
+</div>
+
+<div id="zoom-ctrl">
+  <div class="zbtn" id="zin">+</div>
+  <div class="zbtn" id="zout">−</div>
+</div>
+
+<div id="panel">
+  <div class="handle"></div>
+  <div class="ph">
+    <div class="ph-color" id="ph-color"></div>
+    <div class="ph-name" id="ph-name">—</div>
+    <div class="ph-close" id="ph-close">✕</div>
+  </div>
+  <div class="pdiv"></div>
+  <div class="meta">
+    <div class="meta-item">
+      <div class="meta-label">郡 ID</div>
+      <div class="meta-val id-val" id="m-id">—</div>
+    </div>
+    <div class="meta-item">
+      <div class="meta-label">所屬州</div>
+      <div class="meta-val" id="m-region">—</div>
+    </div>
+    <div class="meta-item" style="grid-column:1/-1">
+      <div class="meta-label">起源勢力</div>
+      <div class="meta-val" id="m-faction">—</div>
+    </div>
+  </div>
+  <button class="region-btn" id="region-btn">
+    <span id="region-btn-text">展示所屬州全部郡縣</span>
+    <span class="arrow">▼</span>
+  </button>
+  <div id="region-list"></div>
+</div>
+
+<script>
+// ── Data ──────────────────────────────────────────────
+const JUN = {"2": {"n": "河南尹", "r": "司隸", "c": "#C33049", "f": "何進", "nb": {"3": 0.333, "4": 0.333, "5": 0.333, "9": 0.2, "12": 0.2, "47": 0.2, "55": 0.2}}, "3": {"n": "河內郡", "r": "司隸", "c": "#BE2740", "f": "司馬懿", "nb": {"2": 0.333, "28": 0.2, "47": 0.2}}, "4": {"n": "河東郡", "r": "司隸", "c": "#B71E37", "f": "徐晃", "nb": {"2": 0.333, "5": 0.333, "7": 0.333, "47": 0.2, "48": 0.2, "49": 0.2, "52": 0.2}}, "5": {"n": "弘農郡", "r": "司隸", "c": "#B01630", "f": "段煨", "nb": {"2": 0.333, "4": 0.333, "6": 0.8, "7": 0.8, "87": 0.333, "55": 0.2, "56": 0.2}}, "6": {"n": "京兆尹", "r": "司隸", "c": "#A80F28", "f": "漢帝", "nb": {"8": 0.8, "5": 0.8, "7": 0.333}}, "7": {"n": "左馮翊", "r": "司隸", "c": "#9F0922", "f": "皇甫嵩", "nb": {"4": 0.333, "5": 0.8, "6": 0.333, "8": 0.333, "49": 0.2}}, "8": {"n": "右扶風", "r": "司隸", "c": "#95031C", "f": "盧植", "nb": {"99": 0.2, "100": 0.2, "6": 0.8, "7": 0.333, "78": 0.2, "79": 0.2, "87": 0.2}}, "9": {"n": "潁川郡", "r": "豫州", "c": "#9F30C3", "f": "荀彧", "nb": {"2": 0.2, "10": 0.333, "12": 0.333, "55": 0.2}}, "10": {"n": "汝南郡", "r": "豫州", "c": "#9522BB", "f": "袁術", "nb": {"65": 0.2, "67": 0.2, "9": 0.333, "12": 0.333, "13": 0.333, "55": 0.2, "58": 0.2, "63": 0.2}}, "11": {"n": "沛國", "r": "豫州", "c": "#8916B0", "f": "紀靈", "nb": {"65": 0.2, "19": 0.2, "20": 0.2, "13": 0.333}}, "12": {"n": "陳國", "r": "豫州", "c": "#7D0CA3", "f": "陳群", "nb": {"9": 0.333, "2": 0.2, "10": 0.333, "13": 0.8}}, "13": {"n": "梁國", "r": "豫州", "c": "#700395", "f": "荀攸", "nb": {"65": 0.2, "10": 0.333, "11": 0.333, "12": 0.8, "18": 0.8}}, "14": {"n": "東郡", "r": "兗州", "c": "#3055C3", "f": "許褚", "nb": {"33": 0.2, "18": 0.333, "28": 0.2, "15": 0.8}}, "15": {"n": "東平國", "r": "兗州", "c": "#2248BB", "f": "典韋", "nb": {"33": 0.2, "14": 0.8, "16": 0.8, "17": 0.8, "22": 0.2}}, "16": {"n": "濟陰國", "r": "兗州", "c": "#163CB0", "f": "曹仁", "nb": {"18": 0.333, "20": 0.2, "15": 0.8}}, "17": {"n": "濟北國", "r": "兗州", "c": "#0C32A3", "f": "郭嘉", "nb": {"24": 0.2, "26": 0.2, "35": 0.2, "15": 0.8}}, "18": {"n": "陳留郡", "r": "兗州", "c": "#032895", "f": "曹操", "nb": {"16": 0.333, "20": 0.8, "13": 0.8, "14": 0.333}}, "19": {"n": "下邳國", "r": "徐州", "c": "#30C349", "f": "劉備", "nb": {"11": 0.2, "20": 0.8, "23": 0.333}}, "20": {"n": "彭城國", "r": "徐州", "c": "#22BB3C", "f": "關羽", "nb": {"11": 0.2, "16": 0.2, "18": 0.8, "19": 0.8, "21": 0.333, "22": 0.333}}, "21": {"n": "東海郡", "r": "徐州", "c": "#16B030", "f": "張飛", "nb": {"26": 0.2, "20": 0.333, "22": 0.8, "23": 0.333}}, "22": {"n": "琅邪國", "r": "徐州", "c": "#0CA325", "f": "諸葛亮", "nb": {"26": 0.2, "20": 0.333, "21": 0.8, "15": 0.2}}, "23": {"n": "廣陵郡", "r": "徐州", "c": "#03951C", "f": "徐庶", "nb": {"65": 0.2, "66": 0.2, "69": 0.2, "19": 0.333, "21": 0.333}}, "24": {"n": "濟南國", "r": "青州", "c": "#30C3B7", "f": "程昱", "nb": {"32": 1, "35": 0.2, "17": 0.2, "25": 0.8, "26": 0.333}}, "25": {"n": "樂安國", "r": "青州", "c": "#1EB7AB", "f": "馬良", "nb": {"24": 0.8, "26": 0.8}}, "26": {"n": "北海國", "r": "青州", "c": "#0FA89B", "f": "太史慈", "nb": {"17": 0.2, "21": 0.2, "22": 0.2, "24": 0.333, "25": 0.8, "27": 0.333}}, "27": {"n": "東萊郡", "r": "青州", "c": "#039589", "f": "法正", "nb": {"26": 0.333}}, "28": {"n": "魏郡", "r": "冀州", "c": "#C3B030", "f": "審配", "nb": {"33": 0.333, "34": 0.333, "3": 0.2, "14": 0.2, "47": 0.2, "48": 0.333}}, "29": {"n": "鉅鹿郡", "r": "冀州", "c": "#BFAB28", "f": "文醜", "nb": {"32": 0.333, "34": 0.333, "35": 0.333, "30": 0.8, "31": 0.333}}, "30": {"n": "常山國", "r": "冀州", "c": "#B9A520", "f": "趙雲", "nb": {"34": 0.333, "48": 0.2, "50": 0.2, "29": 0.8, "31": 0.8}}, "31": {"n": "中山國", "r": "冀州", "c": "#B39F19", "f": "顏良", "nb": {"32": 0.8, "37": 1, "38": 0.2, "39": 0.333, "50": 0.333, "53": 0.2, "29": 0.333, "30": 0.8}}, "32": {"n": "河間國", "r": "冀州", "c": "#AD9813", "f": "張郃", "nb": {"35": 0.333, "38": 0.2, "41": 0.8, "24": 1, "29": 0.333, "31": 0.8}}, "33": {"n": "清河國", "r": "冀州", "c": "#A5910D", "f": "田豐", "nb": {"34": 0.333, "35": 0.333, "14": 0.2, "15": 0.2, "28": 0.333}}, "34": {"n": "趙國", "r": "冀州", "c": "#9D8908", "f": "沮授", "nb": {"33": 0.333, "48": 0.2, "28": 0.333, "29": 0.333, "30": 0.333}}, "35": {"n": "勃海郡", "r": "冀州", "c": "#958103", "f": "袁紹", "nb": {"32": 0.333, "33": 0.333, "17": 0.2, "24": 0.2, "29": 0.333}}, "36": {"n": "安平國", "r": "幽州", "c": "#309FC3", "f": "張角", "nb": {"40": 0.333, "41": 0.333, "42": 0.333}}, "37": {"n": "涿郡", "r": "幽州", "c": "#2B9BC0", "f": "漢昭烈", "nb": {"38": 0.333, "39": 0.333, "40": 0.333, "41": 0.333, "31": 1}}, "38": {"n": "廣陽郡", "r": "幽州", "c": "#2597BD", "f": "劉虞", "nb": {"32": 0.2, "41": 0.333, "37": 0.333, "31": 0.2}}, "39": {"n": "代郡", "r": "幽州", "c": "#2092B9", "f": "滿寵", "nb": {"37": 0.333, "133": 0.2, "40": 0.333, "113": 0.333, "53": 0.2, "31": 0.333}}, "40": {"n": "上谷郡", "r": "幽州", "c": "#1B8EB5", "f": "閻柔", "nb": {"36": 0.333, "37": 0.333, "39": 0.333, "41": 0.8, "43": 0.333, "111": 0.2, "113": 0.2}}, "41": {"n": "漁陽郡", "r": "幽州", "c": "#1689B0", "f": "田疇", "nb": {"32": 0.8, "36": 0.333, "37": 0.333, "38": 0.333, "40": 0.8}}, "42": {"n": "右北平郡", "r": "幽州", "c": "#1285AB", "f": "公孫瓚", "nb": {"43": 0.8, "36": 0.333}}, "43": {"n": "遼西郡", "r": "幽州", "c": "#0D80A6", "f": "田豫", "nb": {"40": 0.333, "42": 0.8, "44": 0.8, "110": 0.8, "111": 0.2}}, "44": {"n": "遼東郡", "r": "幽州", "c": "#0A7BA1", "f": "公孫度", "nb": {"43": 0.8, "166": 0.333, "45": 0.333, "110": 0.2}}, "45": {"n": "玄菟郡", "r": "幽州", "c": "#06769B", "f": "公孫康", "nb": {"166": 0.2, "167": 0.2, "44": 0.333, "46": 0.2, "174": 0.2}}, "46": {"n": "樂浪郡", "r": "幽州", "c": "#037095", "f": "公孫恭", "nb": {"176": 0.2, "45": 0.2, "173": 0.2, "174": 0.2}}, "47": {"n": "上黨郡", "r": "并州", "c": "#C36E30", "f": "張楊", "nb": {"2": 0.2, "3": 0.2, "4": 0.2, "48": 0.333, "28": 0.2}}, "48": {"n": "太原郡", "r": "并州", "c": "#BF6728", "f": "王允", "nb": {"34": 0.2, "4": 0.2, "47": 0.333, "50": 0.2, "52": 0.333, "28": 0.333, "30": 0.2}}, "49": {"n": "上郡", "r": "并州", "c": "#B96020", "f": "陳宮", "nb": {"4": 0.2, "7": 0.2, "79": 0.2, "50": 0.333, "52": 0.2, "85": 0.2, "54": 0.333}}, "50": {"n": "西河郡", "r": "并州", "c": "#B35919", "f": "高順", "nb": {"134": 0.2, "48": 0.2, "49": 0.333, "51": 0.333, "52": 0.333, "53": 0.333, "54": 0.333, "30": 0.2, "31": 0.333}}, "51": {"n": "定襄郡", "r": "并州", "c": "#AD5313", "f": "宋憲", "nb": {"50": 0.333, "53": 0.333, "133": 0.2, "134": 0.2}}, "52": {"n": "雁門郡", "r": "并州", "c": "#A54C0D", "f": "張遼", "nb": {"48": 0.333, "49": 0.2, "50": 0.333, "4": 0.2}}, "53": {"n": "雲中郡", "r": "并州", "c": "#9D4608", "f": "魏續", "nb": {"133": 0.8, "39": 0.2, "50": 0.333, "51": 0.333, "31": 0.2}}, "54": {"n": "五原郡", "r": "并州", "c": "#954003", "f": "呂布", "nb": {"131": 0.8, "132": 0.2, "134": 0.2, "49": 0.333, "50": 0.333, "85": 0.2}}, "55": {"n": "南陽郡", "r": "荊州", "c": "#30C386", "f": "黃忠", "nb": {"2": 0.2, "5": 0.2, "9": 0.2, "10": 0.2, "56": 0.333}}, "56": {"n": "襄陽郡", "r": "荊州", "c": "#2AC081", "f": "劉表", "nb": {"5": 0.2, "87": 0.8, "55": 0.333, "88": 0.2, "57": 0.8, "63": 0.333}}, "57": {"n": "南郡", "r": "荊州", "c": "#24BC7C", "f": "龐統", "nb": {"59": 0.333, "56": 0.8, "58": 0.8, "88": 1, "60": 0.333, "63": 0.333}}, "58": {"n": "江夏郡", "r": "荊州", "c": "#1EB777", "f": "黃祖", "nb": {"67": 0.333, "70": 0.2, "10": 0.2, "57": 0.8, "59": 0.333, "63": 0.333}}, "59": {"n": "長沙郡", "r": "荊州", "c": "#18B372", "f": "顧雍", "nb": {"70": 0.8, "57": 0.333, "58": 0.333, "60": 0.333, "61": 0.333, "62": 0.333}}, "60": {"n": "武陵郡", "r": "荊州", "c": "#13AD6D", "f": "魏延", "nb": {"64": 0.1, "88": 0.2, "57": 0.333, "59": 0.333, "92": 0.1}}, "61": {"n": "零陵郡", "r": "荊州", "c": "#0FA868", "f": "蔣琬", "nb": {"64": 0.2, "71": 0.2, "72": 0.2, "76": 0.2, "59": 0.333, "62": 0.333}}, "62": {"n": "桂陽郡", "r": "荊州", "c": "#0BA263", "f": "費禕", "nb": {"59": 0.333, "61": 0.333, "70": 0.2, "71": 0.2}}, "63": {"n": "江陵郡", "r": "荊州", "c": "#079B5D", "f": "蔡冒", "nb": {"56": 0.333, "57": 0.333, "10": 0.2, "58": 0.333}}, "64": {"n": "武陵蠻", "r": "南蠻", "c": "#C935AF", "f": "沙摩柯", "nb": {"60": 0.1, "61": 0.2, "92": 0.2, "137": 1.0, "76": 0.1}}, "65": {"n": "九江郡", "r": "揚州", "c": "#C33D30", "f": "周瑜", "nb": {"66": 0.333, "67": 0.333, "10": 0.2, "11": 0.2, "13": 0.2, "23": 0.2}}, "66": {"n": "丹陽郡", "r": "揚州", "c": "#BD3225", "f": "孫策", "nb": {"65": 0.333, "67": 0.8, "69": 0.333, "70": 0.333, "23": 0.2}}, "67": {"n": "廬江郡", "r": "揚州", "c": "#B5271B", "f": "陸遜", "nb": {"65": 0.333, "66": 0.8, "70": 0.333, "10": 0.2, "58": 0.333}}, "68": {"n": "會稽郡", "r": "揚州", "c": "#AB1E12", "f": "虞翻", "nb": {"152": 0.2, "155": 0.2, "148": 0.1, "69": 0.333}}, "69": {"n": "吳郡", "r": "揚州", "c": "#A1160A", "f": "孫權", "nb": {"66": 0.333, "68": 0.333, "70": 0.8, "148": 0.2, "23": 0.2, "155": 0.2}}, "70": {"n": "豫章郡", "r": "揚州", "c": "#950F03", "f": "魯肅", "nb": {"66": 0.333, "67": 0.333, "69": 0.8, "71": 0.8, "155": 0.2, "149": 0.2, "150": 0.1, "151": 0.2, "58": 0.2, "59": 0.8, "62": 0.2}}, "71": {"n": "南海郡", "r": "交州", "c": "#30C392", "f": "士燮", "nb": {"70": 0.8, "72": 0.333, "151": 0.1, "154": 0.2, "61": 0.2, "62": 0.2}}, "72": {"n": "蒼梧郡", "r": "交州", "c": "#27BE8B", "f": "吳巨", "nb": {"71": 0.333, "73": 0.333, "74": 0.8, "75": 0.333, "76": 0.333, "61": 0.2}}, "73": {"n": "郁林郡", "r": "交州", "c": "#1EB784", "f": "諸葛瑾", "nb": {"72": 0.333, "137": 0.2, "74": 0.333, "75": 0.333, "77": 0.333, "144": 0.2}}, "74": {"n": "合浦郡", "r": "交州", "c": "#16B07D", "f": "薛綜", "nb": {"72": 0.8, "73": 0.333, "77": 0.333}}, "75": {"n": "九真郡", "r": "交州", "c": "#0FA875", "f": "士徽", "nb": {"72": 0.333, "137": 0.2, "73": 0.333}}, "76": {"n": "日南郡", "r": "交州", "c": "#099F6D", "f": "士䵋", "nb": {"72": 0.333, "137": 0.2, "61": 0.2, "64": 0.1}}, "77": {"n": "交趾郡", "r": "交州", "c": "#039564", "f": "士壹", "nb": {"144": 0.2, "73": 0.333, "74": 0.333}}, "78": {"n": "隴西郡", "r": "涼州", "c": "#C38D30", "f": "董卓", "nb": {"98": 0.2, "99": 0.2, "100": 0.2, "8": 0.2, "79": 0.333, "80": 0.333, "81": 0.333}}, "79": {"n": "武都郡", "r": "涼州", "c": "#BF8829", "f": "華雄", "nb": {"8": 0.2, "78": 0.333, "80": 0.333, "49": 0.2, "85": 0.333}}, "80": {"n": "北地郡", "r": "涼州", "c": "#BB8322", "f": "張繡", "nb": {"131": 0.2, "78": 0.333, "79": 0.333, "81": 0.333, "85": 0.333}}, "81": {"n": "金城郡", "r": "涼州", "c": "#B67D1C", "f": "韓逐", "nb": {"98": 0.2, "131": 0.2, "104": 0.2, "107": 0.2, "78": 0.333, "80": 0.333, "82": 0.8, "84": 0.333}}, "82": {"n": "武威郡", "r": "涼州", "c": "#B07816", "f": "賈詡", "nb": {"81": 0.8, "83": 0.8, "131": 0.2, "84": 0.333}}, "83": {"n": "張掖郡", "r": "涼州", "c": "#AA7210", "f": "郭汜", "nb": {"82": 0.8, "131": 0.2, "84": 0.333, "86": 1.0}}, "84": {"n": "張掖屬國", "r": "涼州", "c": "#A36C0C", "f": "李傕", "nb": {"105": 0.2, "107": 0.2, "81": 0.333, "82": 0.333, "83": 0.333, "86": 1.0}}, "85": {"n": "安定郡", "r": "涼州", "c": "#9C6607", "f": "皇甫嵩", "nb": {"131": 0.2, "79": 0.333, "80": 0.333, "49": 0.2, "54": 0.2}}, "86": {"n": "敦煌郡", "r": "涼州", "c": "#955F03", "f": "馬超", "nb": {"105": 0.2, "163": 0.333, "131": 0.2, "157": 0.8, "83": 1.0, "84": 1.0}}, "87": {"n": "漢中郡", "r": "益州", "c": "#61C330", "f": "張魯", "nb": {"99": 0.2, "5": 0.333, "8": 0.2, "56": 0.8, "88": 0.333, "95": 0.1}}, "88": {"n": "巴郡", "r": "益州", "c": "#5CC02A", "f": "嚴顏", "nb": {"96": 0.333, "89": 0.333, "92": 0.333, "87": 0.333, "56": 0.2, "57": 1, "90": 0.333, "60": 0.2, "93": 0.333, "95": 0.8}}, "89": {"n": "蜀郡", "r": "益州", "c": "#56BC24", "f": "劉璋", "nb": {"88": 0.333, "97": 0.2, "90": 0.333, "93": 0.333}}, "90": {"n": "犍為郡", "r": "益州", "c": "#51B71E", "f": "李嚴", "nb": {"136": 0.2, "139": 0.2, "88": 0.333, "89": 0.333, "91": 0.333, "92": 0.333}}, "91": {"n": "越巂郡", "r": "益州", "c": "#4CB318", "f": "張任", "nb": {"97": 0.2, "135": 0.2, "139": 0.2, "90": 0.333, "94": 0.1}}, "92": {"n": "牂牁郡", "r": "益州", "c": "#47AD13", "f": "朱雋", "nb": {"64": 0.2, "136": 0.2, "137": 0.2, "141": 0.2, "88": 0.333, "90": 0.333, "60": 0.1}}, "93": {"n": "陰平郡", "r": "益州", "c": "#42A80F", "f": "廖化", "nb": {"96": 0.333, "97": 0.2, "88": 0.333, "89": 0.333, "95": 0.333}}, "94": {"n": "永昌郡", "r": "益州", "c": "#3DA20B", "f": "王亢", "nb": {"97": 0.2, "135": 0.2, "140": 0.2, "143": 0.2, "91": 0.1}}, "95": {"n": "廣漢郡", "r": "益州", "c": "#389B07", "f": "張昭", "nb": {"96": 1, "99": 0.2, "87": 0.1, "88": 0.8, "93": 0.333}}, "96": {"n": "梓潼", "r": "益州", "c": "#349503", "f": "鐘縣", "nb": {"88": 0.333, "93": 0.333, "95": 1}}, "97": {"n": "廣漢氐", "r": "氐羌", "c": "#C35830", "f": "彭符", "nb": {"98": 0.333, "99": 0.333, "106": 0.2, "108": 0.2, "142": 0.2, "143": 0.2, "89": 0.2, "91": 0.2, "93": 0.2, "94": 0.2}}, "98": {"n": "隴西氐", "r": "氐羌", "c": "#B7471E", "f": "高瑞", "nb": {"97": 0.333, "99": 0.333, "104": 0.2, "106": 0.2, "78": 0.2, "81": 0.2}}, "99": {"n": "武都氐", "r": "氐羌", "c": "#A8380F", "f": "強端", "nb": {"97": 0.333, "98": 0.333, "100": 0.333, "8": 0.2, "78": 0.2, "87": 0.2, "95": 0.2}}, "100": {"n": "略陽氐", "r": "氐羌", "c": "#952A03", "f": "符健", "nb": {"8": 0.2, "99": 0.333, "78": 0.2}}, "101": {"n": "象雄部", "r": "藏羌", "c": "#6E30C3", "f": "象雄王", "nb": {"160": 0.2, "109": 0.2, "157": 0.1, "103": 0.333}}, "102": {"n": "雅隆部", "r": "藏羌", "c": "#5616B0", "f": "雅隆", "nb": {"143": 0.333, "103": 0.333}}, "103": {"n": "衛藏部", "r": "藏羌", "c": "#400395", "f": "衛藏", "nb": {"109": 0.2, "101": 0.333, "102": 0.333, "143": 0.333}}, "104": {"n": "東羌", "r": "羌族", "c": "#C37F30", "f": "蛾遮塞", "nb": {"81": 0.2, "98": 0.2, "107": 0.333, "106": 0.333}}, "105": {"n": "西羌", "r": "羌族", "c": "#BD7625", "f": "徹里吉", "nb": {"106": 0.333, "107": 0.333, "108": 0.333, "84": 0.2, "86": 0.2, "157": 0.1}}, "106": {"n": "南羌", "r": "羌族", "c": "#B56D1B", "f": "越吉", "nb": {"97": 0.2, "98": 0.2, "104": 0.333, "105": 0.333, "107": 0.333, "108": 0.333}}, "107": {"n": "燒當羌", "r": "羌族", "c": "#AB6312", "f": "芒中", "nb": {"104": 0.333, "105": 0.333, "106": 0.333, "81": 0.2, "84": 0.2}}, "108": {"n": "先零羌", "r": "羌族", "c": "#A15A0A", "f": "迷當", "nb": {"97": 0.2, "105": 0.333, "106": 0.333, "109": 0.333, "142": 0.2, "157": 0.1}}, "109": {"n": "塘羌", "r": "羌族", "c": "#955103", "f": "迷唐", "nb": {"101": 0.2, "103": 0.2, "108": 0.333, "142": 0.2, "143": 0.2, "157": 0.1}}, "110": {"n": "遼西烏桓", "r": "烏桓", "c": "#3092C3", "f": "蹋頓", "nb": {"167": 0.2, "168": 0.2, "169": 0.2, "43": 0.8, "44": 0.2, "111": 0.333, "112": 0.333, "113": 0.333}}, "111": {"n": "右北平烏桓", "r": "烏桓", "c": "#1E84B7", "f": "烏延", "nb": {"40": 0.2, "113": 0.2, "43": 0.2, "110": 0.333}}, "112": {"n": "上谷烏桓", "r": "烏桓", "c": "#0F75A8", "f": "難樓", "nb": {"169": 0.2, "170": 0.2, "110": 0.333, "113": 0.333, "114": 0.2, "116": 0.2}}, "113": {"n": "代郡烏桓", "r": "烏桓", "c": "#036495", "f": "臣抵", "nb": {"129": 0.8, "133": 0.2, "39": 0.333, "40": 0.2, "110": 0.333, "111": 0.2, "112": 0.333, "115": 0.2, "116": 0.2}}, "114": {"n": "鮮卑軻比", "r": "鮮卑", "c": "#306EC3", "f": "軻比能", "nb": {"170": 0.2, "112": 0.2, "178": 0.1, "116": 0.333, "118": 0.333}}, "115": {"n": "單于王庭", "r": "鮮卑", "c": "#2262BB", "f": "檀石槐", "nb": {"129": 0.2, "116": 0.333, "117": 0.333, "113": 0.2}}, "116": {"n": "鮮卑拓跋", "r": "鮮卑", "c": "#1656B0", "f": "拓跋氏", "nb": {"112": 0.2, "113": 0.2, "114": 0.333, "115": 0.333, "117": 0.333}}, "117": {"n": "鮮卑慕容", "r": "鮮卑", "c": "#0C4BA3", "f": "慕容氏", "nb": {"129": 0.2, "130": 0.2, "115": 0.333, "116": 0.333, "127": 0.2}}, "118": {"n": "鮮卑肅慎", "r": "鮮卑", "c": "#034095", "f": "肅慎", "nb": {"178": 0.1, "114": 0.333}}, "119": {"n": "北境丁零", "r": "丁零", "c": "#C3A630", "f": "丁零賢王", "nb": {"122": 0.333, "124": 0.333, "126": 0.2}}, "120": {"n": "北地丁零", "r": "丁零", "c": "#BD9E25", "f": "丁零北王", "nb": {"121": 0.333, "122": 0.333, "165": 0.2}}, "121": {"n": "西境丁零", "r": "丁零", "c": "#B5961B", "f": "丁零西王", "nb": {"163": 0.2, "165": 0.2, "120": 0.333, "122": 0.333, "156": 0.2}}, "122": {"n": "丁零王廷", "r": "丁零", "c": "#AB8C12", "f": "丁零王", "nb": {"119": 0.333, "120": 0.333, "121": 0.333, "123": 0.333, "124": 0.333}}, "123": {"n": "南境丁零", "r": "丁零", "c": "#A1820A", "f": "丁零南王", "nb": {"128": 0.2, "129": 0.2, "131": 0.2, "122": 0.333, "124": 0.333}}, "124": {"n": "東境丁零", "r": "丁零", "c": "#957803", "f": "丁零東王", "nb": {"128": 0.2, "119": 0.333, "122": 0.333, "123": 0.333, "126": 0.2}}, "125": {"n": "匈奴回紇部", "r": "匈奴", "c": "#C33030", "f": "回紇", "nb": {"130": 0.333, "126": 0.333}}, "126": {"n": "匈奴突厥部", "r": "匈奴", "c": "#BD2525", "f": "突厥", "nb": {"128": 0.333, "130": 0.333, "119": 0.2, "124": 0.2, "125": 0.333}}, "127": {"n": "單于王庭", "r": "匈奴", "c": "#B51B1B", "f": "冒頓單于", "nb": {"129": 0.333, "130": 0.333, "117": 0.2}}, "128": {"n": "匈奴閼氏部落", "r": "匈奴", "c": "#AB1212", "f": "匈奴皇后", "nb": {"129": 0.333, "130": 0.333, "123": 0.2, "124": 0.2, "126": 0.333}}, "129": {"n": "匈奴右賢王部", "r": "匈奴", "c": "#A10A0A", "f": "右賢王", "nb": {"128": 0.333, "130": 0.333, "131": 0.333, "132": 0.333, "133": 0.333, "113": 0.8, "115": 0.2, "117": 0.2, "123": 0.2, "127": 0.333}}, "130": {"n": "匈奴左賢王部", "r": "匈奴", "c": "#950303", "f": "左賢王", "nb": {"128": 0.333, "129": 0.333, "117": 0.2, "125": 0.333, "126": 0.333, "127": 0.333}}, "131": {"n": "漢南匈奴部", "r": "南匈奴", "c": "#C35530", "f": "呼廚泉", "nb": {"129": 0.333, "132": 0.8, "80": 0.2, "81": 0.2, "82": 0.2, "83": 0.2, "85": 0.2, "54": 0.8, "86": 0.2, "123": 0.2}}, "132": {"n": "漢左賢王部", "r": "南匈奴", "c": "#B7441E", "f": "劉豹", "nb": {"129": 0.333, "131": 0.8, "133": 0.8, "134": 0.333, "54": 0.2}}, "133": {"n": "漢右賢王部", "r": "南匈奴", "c": "#A8350F", "f": "去卑", "nb": {"129": 0.333, "132": 0.8, "134": 0.333, "39": 0.2, "113": 0.2, "51": 0.2, "53": 0.8}}, "134": {"n": "漢匈奴王部", "r": "南匈奴", "c": "#952803", "f": "於夫羅", "nb": {"132": 0.333, "133": 0.333, "50": 0.2, "51": 0.2, "54": 0.2}}, "135": {"n": "禿龍蠻", "r": "南蠻", "c": "#C330AB", "f": "朵思大王", "nb": {"136": 0.333, "139": 0.333, "140": 0.1, "141": 0.1, "145": 0.333, "91": 0.2, "94": 0.2}}, "136": {"n": "犍為蠻", "r": "南蠻", "c": "#C02BA8", "f": "帶來洞主", "nb": {"135": 0.333, "139": 0.333, "141": 0.333, "90": 0.2, "92": 0.2}}, "137": {"n": "五溪蠻", "r": "南蠻", "c": "#BD26A4", "f": "兀突骨", "nb": {"73": 0.2, "75": 0.2, "76": 0.2, "146": 0.333, "92": 0.2, "64": 1.0}}, "138": {"n": "哀牢蠻", "r": "南蠻", "c": "#BA21A0", "f": "孟獲", "nb": {"140": 0.333}}, "139": {"n": "滇池蠻", "r": "南蠻", "c": "#B61C9C", "f": "祝融夫人", "nb": {"136": 0.333, "90": 0.2, "91": 0.2, "135": 0.333}}, "140": {"n": "句町蠻", "r": "南蠻", "c": "#B21898", "f": "孟優", "nb": {"138": 0.333, "94": 0.2, "135": 0.1}}, "141": {"n": "夜郎蠻", "r": "南蠻", "c": "#AE1494", "f": "木鹿大王", "nb": {"136": 0.333, "146": 0.333, "92": 0.2, "135": 0.1}}, "142": {"n": "藏東部", "r": "藏羌", "c": "#7A3DC8", "f": "藏東豪帥", "nb": {"97": 0.2, "108": 0.2, "109": 0.2, "143": 0.333}}, "143": {"n": "藏南部", "r": "藏羌", "c": "#6B28BD", "f": "藏南渠帥", "nb": {"97": 0.2, "102": 0.333, "103": 0.333, "109": 0.2, "142": 0.333, "94": 0.2}}, "144": {"n": "西甌蠻", "r": "南蠻", "c": "#A00986", "f": "譯吁宋", "nb": {"73": 0.2, "146": 0.333, "77": 0.2}}, "145": {"n": "滇越蠻", "r": "南蠻", "c": "#9A0682", "f": "滇越王", "nb": {"146": 0.333, "135": 0.333}}, "146": {"n": "雒越蠻", "r": "南蠻", "c": "#95037C", "f": "雒越王", "nb": {"144": 0.333, "137": 0.333, "145": 0.333, "141": 0.333}}, "147": {"n": "閩越殘部", "r": "百越", "c": "#30C3AB", "f": "費棧", "nb": {"152": 0.333, "153": 0.333, "150": 0.333}}, "148": {"n": "東甌山越", "r": "百越", "c": "#29BFA6", "f": "潘臨", "nb": {"155": 0.333, "68": 0.1, "69": 0.2}}, "149": {"n": "山越本部", "r": "百越", "c": "#22BBA1", "f": "嚴白虎", "nb": {"152": 0.333, "150": 0.333, "155": 0.333, "70": 0.2}}, "150": {"n": "閩中山越", "r": "百越", "c": "#1CB69C", "f": "金奇", "nb": {"70": 0.1, "147": 0.333, "149": 0.333, "151": 0.333, "153": 0.333}}, "151": {"n": "閩南山越", "r": "百越", "c": "#16B096", "f": "毛甘", "nb": {"70": 0.2, "71": 0.1, "150": 0.333, "153": 0.333, "154": 0.333}}, "152": {"n": "閩北山越", "r": "百越", "c": "#10AA90", "f": "尤突", "nb": {"147": 0.333, "155": 0.333, "68": 0.2, "149": 0.333}}, "153": {"n": "閩西山越", "r": "百越", "c": "#0CA38A", "f": "彭虎", "nb": {"154": 0.333, "147": 0.333, "150": 0.333, "151": 0.333}}, "154": {"n": "閩漳山越", "r": "百越", "c": "#079C83", "f": "彭綺", "nb": {"153": 0.333, "71": 0.2, "151": 0.333}}, "155": {"n": "西甌山越", "r": "百越", "c": "#03957C", "f": "蒙多", "nb": {"68": 0.2, "69": 0.2, "70": 0.2, "148": 0.333, "149": 0.333, "152": 0.333}}, "156": {"n": "車師國", "r": "西域", "c": "#C39730", "f": "卑君", "nb": {"162": 0.2, "163": 0.333, "165": 0.2, "121": 0.2, "157": 0.333}}, "157": {"n": "焉耆國", "r": "西域", "c": "#C0932A", "f": "龍突", "nb": {"160": 0.2, "162": 0.333, "163": 0.2, "164": 0.2, "165": 0.1, "101": 0.1, "105": 0.1, "108": 0.1, "109": 0.1, "86": 0.8, "156": 0.333, "158": 0.8}}, "158": {"n": "龜茲國", "r": "西域", "c": "#BC8E24", "f": "白霸", "nb": {"160": 0.333, "161": 0.2, "164": 0.2, "157": 0.8, "159": 0.333}}, "159": {"n": "疏勒國", "r": "西域", "c": "#B7891E", "f": "和得", "nb": {"160": 0.333, "161": 0.333, "158": 0.333}}, "160": {"n": "于闐國", "r": "西域", "c": "#B38418", "f": "位侍", "nb": {"101": 0.2, "157": 0.2, "158": 0.333, "159": 0.333}}, "161": {"n": "莎車國", "r": "西域", "c": "#AD7F13", "f": "莎車王", "nb": {"158": 0.2, "159": 0.333}}, "162": {"n": "樓蘭國", "r": "西域", "c": "#A87A0F", "f": "鄯善王", "nb": {"163": 0.333, "156": 0.2, "157": 0.333}}, "163": {"n": "伊吾國", "r": "西域", "c": "#A2740B", "f": "伊吾王", "nb": {"162": 0.333, "86": 0.333, "121": 0.2, "156": 0.333, "157": 0.2}}, "164": {"n": "烏孫國", "r": "西域", "c": "#9B6F07", "f": "獵驕靡", "nb": {"158": 0.2, "165": 0.333, "157": 0.2}}, "165": {"n": "康居都護", "r": "西域", "c": "#956903", "f": "康居王", "nb": {"164": 0.333, "120": 0.2, "121": 0.2, "156": 0.2, "157": 0.1}}, "166": {"n": "蘇僕高句麗", "r": "高句麗", "c": "#3D30C3", "f": "蘇僕延", "nb": {"44": 0.333, "45": 0.2, "167": 0.2}}, "167": {"n": "高句麗本部", "r": "高句麗", "c": "#3225BD", "f": "高宮王", "nb": {"166": 0.2, "168": 0.333, "172": 0.2, "45": 0.2, "110": 0.2}}, "168": {"n": "夷模高句麗", "r": "高句麗", "c": "#271BB5", "f": "伊夷模", "nb": {"167": 0.333, "169": 0.333, "171": 0.333, "172": 0.2, "173": 0.2, "110": 0.2}}, "169": {"n": "卒本高句麗", "r": "高句麗", "c": "#1E12AB", "f": "朱蒙", "nb": {"168": 0.333, "170": 0.333, "171": 0.333, "110": 0.2, "112": 0.2}}, "170": {"n": "鴨綠高句麗", "r": "高句麗", "c": "#160AA1", "f": "伯固", "nb": {"169": 0.333, "171": 0.333, "175": 0.2, "112": 0.2, "178": 0.2, "114": 0.2}}, "171": {"n": "濊貊高句麗", "r": "高句麗", "c": "#0F0395", "f": "濊貊", "nb": {"168": 0.333, "169": 0.333, "170": 0.333, "175": 0.2}}, "172": {"n": "夫餘本部", "r": "夫餘", "c": "#30B7C3", "f": "東明王", "nb": {"168": 0.2, "173": 0.333, "174": 0.333, "167": 0.2}}, "173": {"n": "東夫餘", "r": "夫餘", "c": "#1EABB7", "f": "簡位居", "nb": {"168": 0.2, "172": 0.333, "174": 0.333, "175": 0.333, "176": 0.2, "177": 0.2, "46": 0.2, "181": 0.2}}, "174": {"n": "南夫餘", "r": "夫餘", "c": "#0F9BA8", "f": "麻余", "nb": {"45": 0.2, "172": 0.333, "173": 0.333, "46": 0.2}}, "175": {"n": "北夫餘", "r": "夫餘", "c": "#038995", "f": "延優", "nb": {"170": 0.2, "171": 0.2, "173": 0.333, "178": 0.2, "181": 0.2}}, "176": {"n": "挹婁南境", "r": "挹婁", "c": "#5530C3", "f": "祚榮", "nb": {"46": 0.2, "179": 0.333, "173": 0.2, "182": 0.333}}, "177": {"n": "岩花挹婁", "r": "挹婁", "c": "#4C27BE", "f": "長風", "nb": {"173": 0.2, "179": 0.333, "180": 0.333, "181": 0.333, "182": 0.333}}, "178": {"n": "北境挹婁", "r": "挹婁", "c": "#441EB7", "f": "蘇那", "nb": {"170": 0.2, "175": 0.2, "114": 0.1, "181": 0.333, "118": 0.1}}, "179": {"n": "東境挹婁", "r": "挹婁", "c": "#3C16B0", "f": "青石", "nb": {"176": 0.333, "177": 0.333, "182": 0.333}}, "180": {"n": "濱花挹婁", "r": "挹婁", "c": "#350FA8", "f": "楛矢", "nb": {"177": 0.333, "181": 0.333}}, "181": {"n": "松花挹婁", "r": "挹婁", "c": "#2E099F", "f": "石砮", "nb": {"173": 0.2, "175": 0.2, "177": 0.333, "178": 0.333, "180": 0.333}}, "182": {"n": "挹婁王廷", "r": "挹婁", "c": "#280395", "f": "挹婁王", "nb": {"176": 0.333, "177": 0.333, "179": 0.333}}};
+
+const MAP_W = 720, MAP_H = 490;
+
+// precompute region map
+const REGIONS = {};
+Object.entries(JUN).forEach(([id, d]) => {
+  if (!REGIONS[d.r]) REGIONS[d.r] = [];
+  REGIONS[d.r].push(Number(id));
+});
+
+// ── Canvas setup ──────────────────────────────────────
+const wrap = document.getElementById('map-wrap');
+const cBase = document.getElementById('c-base');
+const cOvl  = document.getElementById('c-ovl');
+const ctxB  = cBase.getContext('2d');
+const ctxO  = cOvl.getContext('2d');
+
+let W = window.innerWidth, H = window.innerHeight;
+function setSizes(){
+  W = window.innerWidth; H = window.innerHeight;
+  cBase.width = cOvl.width = W;
+  cBase.height = cOvl.height = H;
+}
+setSizes();
+
+// ── State ─────────────────────────────────────────────
+let vx = 0, vy = 0, sc = 1;
+let pm = null;          // pixel map Uint8Array
+let baseImg = null;     // ImageData of base map
+let selId = null;       // selected jun id
+let showRegion = false; // region mode
+
+function clamp(){
+  const m = 60;
+  vx = Math.max(-(MAP_W*sc - m), Math.min(W - m, vx));
+  vy = Math.max(-(MAP_H*sc - m), Math.min(H - m, vy));
+}
+function fit(){
+  sc = Math.min(W/MAP_W, (H-48)/MAP_H) * 0.94;
+  vx = (W - MAP_W*sc)/2;
+  vy = (H - MAP_H*sc)/2 + 24;
+}
+
+// ── Colour helpers ────────────────────────────────────
+function hexToRgb(h){
+  return [parseInt(h.slice(1,3),16), parseInt(h.slice(3,5),16), parseInt(h.slice(5,7),16)];
+}
+
+// ── Build base image ──────────────────────────────────
+// ── BORDER_DATA: 固定邊界點位（純4方向直接相鄰預計算，永久不變） ─
+// 總邊界像素: 6521 px  格式: delta壓縮 Uint32 LE → base64
+const BORDER_COLORS = {
+  'S':[230,190,50],
+  'A':[195,155,55],
+  'B':[110,70,35],
+  'C':[140,80,30],
+  'D':[105,100,95]
+};
+const BORDER_PIXELS_B64 = {
+  'S':"zgECANACAAABAAAAzwIAAAEAAADPAgAAAQAAAM8CAAABAAAA0AIAAAEAAAACAAAAAQAAAAEAAAABAAAAAQAAAMoCAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAygIAAH4KAAABAAAAAQAAAMoCAAABAAAAAgAAAAEAAAABAAAAxgIAAAMAAAABAAAAAQAAAAEAAAABAAAAAQAAAMcCAAABAAAAAQAAAAEAAAABAAAAAQAAAAMAAADHAgAAAQAAAAIAAAABAAAAzAIAAAEAAADPAgAAAQAAAAEAAAABAAAAzgIAAAEAAAABAAAAAQAAAAEAAADPAgAAAQAAAAEAAAABAAAAAQAAAAEAAADNAgAAAQAAAAEAAAABAAAAAQAAANACAAABAAAAzwIAAAEAAACrAwAAzwIAAAEAAADOAgAAAQAAAM8CAAABAAAAzQIAAAEAAAABAAAAzQIAAAEAAAABAAAAzgIAAAEAAADOAgAAAQAAAOzoAADPAgAAAQAAAAEAAADKAgAAAQAAAAIAAAABAAAAAQAAAAEAAADJAgAAAQAAAAEAAAABAAAAAQAAAAEAAADJAgAAAQAAAAEAAAADAAAAygIAAAEAAAABAAAAGBEAAAEAAADPAgAAAQAAAM8CAAABAAAAzwIAAAEAAADPAgAAAQAAAM8CAAABAAAAzwIAAAEAAADPAgAAAQAAAM8CAAABAAAAzgIAAAEAAADPAgAAAQAAAM8CAAABAAAAzwIAAAEAAADPAgAAAQAAAM8CAAABAAAA0AIAABejAAABAAAAzwIAAAEAAADQAgAA",
+  'A':"YUIBAAEAAADPAgAAAQAAAM4CAAABAAAAzwIAAAEAAADPAgAAAQAAAM4CAAABAAAAzgIAAAEAAADPAgAAAQAAANACAAABAAAAzwIAAAEAAADQAgAAAQAAANACAAABAAAA0AIAAAEAAADQAgAAAQAAAM8CAAABAAAA0AIAAAEAAADOAgAAAQAAAAEAAADNAgAAAQAAAAEAAADNAgAAAQAAAMwCAAABAAAAAQAAAAEAAADMAgAAAQAAAAEAAAABAAAApR0AAAEAAAABAAAAAQAAAAQAAADJAgAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAADQBAAABAAAAlQEAAAEAAAABAAAAAgAAAAEAAAABAAAAAQAAADQBAAABAAAAmgEAAAEAAAA1AQAAAQAAAJkBAAABAAAANQEAAAEAAAB4AAAAIQEAAAEAAAA2AQAAAQAAAHcAAAABAAAAHwEAAAEAAAA3AQAAAQAAAHcAAAABAAAAAQAAAB8BAAABAAAANgEAAAEAAAB4AAAAAQAAAAEAAAAeAQAAAQAAADcBAAABAAAAeAAAAAEAAAALAAAAAQAAABMBAAABAAAANgEAAAEAAAB5AAAAAQAAAAkAAAABAAAAAQAAABMBAAABAAAANwEAAAEAAAB5AAAAAQAAAAYAAAABAAAAAQAAABQBAAABAAAAOQEAAAEAAAB5AAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAUAAAABAAAADwEAAAEAAAA5AQAAAQAAAHoAAAABAAAAAQAAAAEAAAABAAAACAAAAAEAAAAOAQAAAQAAADoBAAABAAAAhQAAAAEAAAAOAQAAAQAAADsBAAABAAAAAQAAAIIAAAABAAAADwEAAAEAAAA8AQAAAQAAAAEAAACAAAAAAQAAAAEAAAAPAQAAAQAAAD0BAAABAAAAfAAAAAEAAAABAAAAAQAAAAEAAAABAAAAEQEAAAEAAAA8AQAAAQAAAHgAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAEwEAAAEAAACzAQAAAQAAAAEAAAABAAAAAQAAAAEAAAAXAQAAAQAAAPYAAACyAAAAAQAAAAEAAAAIAAAAAQAAAAEAAAAbAQAAAQAAAPYAAAABAAAAsAAAAAEAAAABAAAAAQAAAAEAAAABAAAABgAAAAEAAAAdAQAAAQAAAPUAAAABAAAAqgAAAAEAAAAEAAAAAQAAAAEAAAADAAAAAQAAAAYAAAABAAAAHAEAAAEAAAD3AAAAAQAAAKgAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAADAAAAAEAAAAbAQAAAQAAAPcAAAABAAAApwAAAAEAAAABAAAAAgAAAAEAAAABAAAAKwEAAAEAAAD3AAAAAQAAAAEAAAChAAAAAQAAAAEAAAABAAAAAQAAAAEAAAAwAQAAAQAAAPgAAAABAAAAAQAAAAEAAACeAAAAAQAAAAEAAAABAAAAAQAAADIBAAABAAAA+gAAAAEAAAABAAAAAQAAAAEAAAABAAAAmgAAADUBAAABAAAAbQAAAAEAAAABAAAAjgAAAAEAAAABAAAAAQAAAAEAAADOAQAAAQAAAGYAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAACSAAAAAQAAAAEAAAABAAAAywEAAAEAAABlAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAJYAAAABAAAAAQAAAAEAAABTAAAAAQAAAAEAAAABAAAAdAEAAAEAAABlAAAAAQAAAJwAAAABAAAAAQAAAAEAAABMAAAAAQAAAAUAAAABAAAAAQAAAAEAAAABAAAAdAEAAAEAAABlAAAAAQAAAJsAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAARgAAAAEAAAABAAAAAQAAAAEAAAABAAAAAgAAAAEAAAABAAAANQAAAAEAAAABAAAAAQAAAEABAAABAAAAZQAAAAEAAACcAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAARQAAAAEAAAABAAAAAQAAAAMAAAABAAAAAQAAAAEAAAA1AAAAAQAAAAEAAAABAAAAAQAAAEABAAABAAAAZQAAAAEAAADnAAAAAQAAAAYAAAA0AAAAAQAAAAEAAAABAAAARAEAAAEAAABlAAAAAQAAAOcAAAABAAAANgAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAEUBAAABAAAAZAAAAAEAAAAfAQAAAQAAAAEAAAABAAAASAEAAAEAAABkAAAAAQAAAM8CAAABAAAAzwIAAAEAAACiAAAAAQAAACsCAAABAAAAowAAAAEAAAArAgAAAQAAAKMAAAABAAAAKwIAAAEAAACjAAAAAQAAACsCAAABAAAAowAAAAEAAAArAgAAAQAAAKIAAAABAAAAKwIAAAEAAACiAAAAAQAAAAEAAAAqAgAAAQAAAAEAAACjAAAAAQAAAAEAAAAoAgAAAQAAAAEAAAClAAAAAQAAAM8CAAABAAAAzwIAAAEAAADQAgAAAQAAAM8CAAABAAAAzwIAAAEAAADOAgAAAQAAAGoAAAABAAAAMQIAAAEAAAAyAAAAAQAAAGoAAAABAAAAMQIAAAEAAAAxAAAAAQAAAGoAAAABAAAACwAAAAEAAAABAAAAJQIAAAEAAAAxAAAAAQAAAFcAAAABAAAAAQAAABEAAAABAAAACwAAAAEAAAABAAAAAQAAAAEAAAADAAAAAQAAAB4CAAABAAAAMQAAAAEAAABVAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAEAAAAAEAAAAOAAAAAQAAAAEAAAABAAAAAQAAAAEAAAAfAgAAAQAAADAAAAABAAAAVQAAAAEAAAABAAAAAwAAAAEAAAABAAAADQAAAAEAAAABAAAAAQAAABAAAAABAAAAIgIAAAEAAAAvAAAAAQAAAFsAAAABAAAAAQAAAAEAAAAKAAAAAQAAAAEAAAABAAAANAIAAAEAAAABAAAALQAAAAEAAABeAAAAAQAAAAEAAABBAgAAAQAAAAEAAAAsAAAAAQAAAGAAAAABAAAAQAIAAAEAAAABAAAAjAAAAAEAAAABAAAAAQAAAAEAAAA6AgAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAjQAAAAEAAAABAAAAAQAAADkCAAABAAAAAQAAAAEAAAABAAAAAgAAAMkCAAABAAAAAQAAAJgAAAABAAAANgIAAAEAAAABAAAAmAAAAAEAAAAgAAAAAQAAABQCAAABAAAAmAAAAAEAAAAhAAAAAQAAAAEAAAAUAgAAAQAAAJcAAAABAAAAIgAAAAEAAAABAAAAqwIAAAEAAAAjAAAAAQAAAM8CAAABAAAAzgIAAAEAAADOAgAAAQAAAM4CAAABAAAA0AIAAAEAAAAnAgAAAQAAAKgAAAABAAAABAAAAAEAAAABAAAAIAIAAAEAAACpAAAAAQAAAAIAAAABAAAAAQAAAAEAAAAgAgAAAQAAAKkAAAABAAAAAQAAAAEAAAAiAgAAAQAAAKoAAAABAAAAAQAAAAEAAAAiAgAAAQAAAKsAAAABAAAAIgIAAAEAAACsAAAAAQAAABgCAAADAAAAAQAAAAEAAAABAAAAAQAAAAIAAAABAAAArQAAABkCAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAMUCAAABAAAAAQAAAAEAAAAFAAAAAQAAAAEAAADHAgAAAQAAAEcGAAABAAAAzgIAAAEAAAABAAAAAQAAAMwCAAABAAAAAgAAAAEAAADIAgAAAQAAAAEAAAABAAAAAQAAAAMAAAABAAAAyAIAAAEAAAABAAAAAQAAAAUAAAABAAAAzwIAAAEAAADQAgAAAQAAAL4CAAABAAAAEQAAAL4CAAABAAAAzwIAAAEAAAAfAAAAzwIAAAEAAACzAgAAAQAAAAEAAAAGAAAAAQAAAAEAAAABAAAAAQAAABAAAAABAAAAswIAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAAQAAAAAQAAALUCAAABAAAAAQAAAAEAAAABAAAAFQAAAAEAAADPAgAAAQAAAM8CAAABAAAAzwIAAAEAAAABAAAAAQAAAAEAAAABAAAAzAIAAAEAAAABAAAAAQAAAAEAAAABAAAAzwIAAAEAAADPAgAAAQAAAMwCAAABAAAAAQAAAAEAAADMAgAAAQAAAAEAAAABAAAAzQIAAAEAAAClAgAAAQAAAAEAAAAnAAAAAQAAAKYCAAABAAAAAQAAAAEAAAAmAAAAAQAAAKkCAAABAAAACQAAAAEAAAAYAAAAAQAAAAEAAAABAAAAqgIAAAEAAAAFAAAAAQAAAAMAAAABAAAAGAAAAAEAAAABAAAAqwIAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAgAAAAEAAAB7AgAASwAAAAEAAAABAAAAAQAAAAEAAAADAAAAfQIAAAEAAAALAAAAAQAAAAEAAAABAAAAAQAAAMACAAABAAAACgAAAAEAAAABAAAAAQAAAAEAAAABAAAAvwIAAAEAAAAJAAAAAQAAAAEAAAABAAAAwQIAAAEAAAABAAAACQAAAAEAAAABAAAAAQAAAAEAAAA6AAAAAQAAAH8CAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAA0AAAA8AAAAAQAAACEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAABWAgAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAoAAAABAAAAQAAAAAEAAAAEAAAAAQAAABsAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAABWAgAAAQAAABAAAAABAAAAAQAAAEAAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAGgAAAAEAAABaAgAAAQAAAAEAAAAMAAAABAAAAAEAAABCAAAAAQAAAAEAAAABAAAAAgAAAAEAAAAaAAAAAQAAAFoCAAABAAAADAAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAABFAAAAAQAAABwAAAABAAAAZgIAAAIAAAABAAAAAQAAAAEAAAABAAAARwAAAAEAAAAbAAAAAQAAALMCAAABAAAAzwIAAAEAAADbGwAAAQAAAAEAAADPAgAAAQAAAAEAAAABAAAAzwIAAAEAAAABAAAA0AIAAAEAAADPAgAAAQAAAMkCAAAGAAAAAQAAAMgCAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAKUCAAABAAAAIgAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAACmAgAAAQAAACEAAAABAAAArQIAAAEAAAAhAAAAAQAAAK0CAAABAAAAIQAAAAEAAACsAgAAAQAAACMAAAABAAAAqwIAAAEAAAAjAAAAAQAAAKoCAAABAAAAJAAAAAEAAACpAgAAAQAAABURAADNAgAAAQAAAAEAAAABAAAAAQAAAMsCAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAADJAgAAAQAAAAUAAAABAAAAAQAAAAEAAAADAAAAxAIAAAEAAAAHAAAAAQAAAAEAAAABAAAAAQAAAM4CAAABAAAA8hMAAM8CAAABAAAAzgIAAAEAAAABAAAAAQAAAMwCAAABAAAAAQAAAAEAAADMAgAAAQAAAM8CAAABAAAAzwIAAAEAAADPAgAArgIAAAEAAADPAgAAAQAAAMwCAAABAAAAAQAAAAEAAAABAAAAzAIAAAEAAAABAAAAVRwAAAEAAADQAgAAAQAAAM8CAAABAAAA0AIAAAEAAADPAgAAAQAAANACAAABAAAAzwIAAAEAAACbAgAAAQAAAM8CAAABAAAAzwIAAAEAAADQAgAAAQAAAM8CAAABAAAAzwIAAAEAAADPAgAAAQAAAM4CAAABAAAAzgIAAAEAAADPAgAAAQAAAM0CAAABAAAAAQAAAM0CAAABAAAAAQAAAM0CAAABAAAAzwIAAAEAAADPAgAAAQAAAM4CAAABAAAAzwIAAAEAAADPAgAAAQAAAM8CAAABAAAAAQAAAAEAAADOAgAAAQAAAAEAAAABAAAAzwIAAAEAAADOAgAAAQAAAM8CAAABAAAAzwIAAAEAAADQAgAAAQAAAM8CAAABAAAAzwIAAAEAAADOAgAAAQAAANACAAABAAAA0AIAAAEAAADQAgAAAQAAAGNGAAABAAAAyAIAAAEAAAABAAAAAQAAAAQAAAABAAAAxgIAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAMAAAABAAAAwQIAAAIAAAABAAAAAQAAAAEAAAABAAAABQAAAAEAAAABAAAAAQAAAAEAAADAAgAAAQAAAAEAAAABAAAAAQAAAAEAAAAIAAAAAQAAAAEAAAABAAAAwAIAAAIAAACtagAAAQAAAM8CAAABAAAAzwIAAAEAAADQAgAAAQAAAAEAAAABAAAAAQAAAAEAAADLAgAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAywIAAA==",
+  'B':"YR4AAM8CAAABAAAAAQAAAM4CAAABAAAAzgIAAAEAAADQAgAAAQAAAM8CAAABAAAAzwIAAAEAAADQAgAAAQAAAM8CAAABAAAA0AIAAAEAAADPAgAAAQAAAM8CAAABAAAAzwIAAAEAAADQAgAAAQAAAAkAAAABAAAAxgIAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAxgIAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAADUPwAAAQAAAM8CAAABAAAAzgIAAAEAAADPAgAAAQAAAM4CAAABAAAAfwIAAE4AAAABAAAAAQAAAAEAAAB/AgAAAQAAAAEAAAALAAAAAQAAAD8AAAABAAAAAQAAAAEAAAABAAAAgAIAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAIAAAABAAAAFAAAAAEAAAArAAAAAwAAADsCAAABAAAAAQAAAAEAAABFAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAFAAAAAEAAAABAAAAaAIAAAEAAAABAAAAAQAAAAEAAAABAAAAJgAAACYAAAAWAAAAAQAAAAEAAAA9AAAAAQAAACgCAAABAAAABAAAAAEAAAABAAAAJAAAAAEAAAABAAAAOgAAAAEAAAABAAAAPgAAAAEAAAABAAAAIgIAAAEAAAABAAAAAQAAAAEAAAABAAAABgAAAAEAAAABAAAAGQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAACAAAAOQAAAAEAAABCAAAAAQAAAEcAAAABAAAAxQAAAAEAAAARAQAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAACQAAAAEAAAAYAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAPAAAAAEAAABDAAAAAQAAAAoAAAA8AAAAAQAAAMQAAAABAAAAAQAAABEBAAABAAAADwAAAF0AAAABAAAARAAAAAEAAAABAAAAAQAAAAQAAAABAAAAAQAAAAEAAAABAAAAAQAAADsAAAABAAAAwwAAAAEAAAB+AQAAAQAAAAEAAABFAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAACAAAA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AQAAAAEAAAABAAAAAQAAAAEAAABnAAAAAQAAAJQBAAABAAAAAQAAAA0AAADCAAAAAQAAAAIAAAABAAAAAQAAAGUAAAABAAAAUQEAAAEAAAABAAAAQAAAAAEAAAABAAAAAQAAANMAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAF4AAAABAAAAUgEAAAEAAAABAAAAPgAAAAEAAADYAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAF0AAAABAAAAUwEAAAEAAAAiAAAAAQAAABoAAAABAAAAPQEAAAEAAABUAQAAAQAAACEAAAABAAAAAQAAABgAAAABAAAAPwEAAAEAAABTAQAAAQAAACMAAAAYAAAAAQAAAAEAAAA/AQAAUwEAAAEAAAA7AAAAAQAAAJMCAAABAAAA0AIAAAEAAADPAgAAzwIAAAEAAADMAgAAAQAAAAEAAAABAAAAzAIAAAEAAAABAAAAAQAAAEEBAACMAQAAAQAAAEMBAAABAAAA0AIAAAEAAAABAAAAAQAAAAEAAADNAgAAAQAAAAEAAAABAAAAGAEAAM8CAAABAAAAzgIAAAEAAADPAgAAAQAAAF8KAAABAAAAzwIAAAEAAADPAgAAAQAAAHUAAAABAAAAAQAAAAEAAABXAgAAAQAAAHYAAAABAAAAAQAAAAEAAABAAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAAJAgAAAQAAAHgAAAABAAAAPAAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAACQIAAAEAAAB5AAAAAQAAADoAAAABAAAAAQAAAAEAAAAXAgAAAQAAAAEAAAB6AAAAAQAAAAEAAAABAAAAAQAAADYAAAAbAgAAAQAAAAEAAAB6AAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAATAIAAAEAAAB+AAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAIoAAABlAAAAAQAAAAUAAAABAAAA2QEAAAEAAAABAAAAAQAAAAEAAACHAAAAAQAAAGQAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAIMBAAABAAAAAQAAAAEAAABUAAAAAQAAAAEAAAABAAAAhgAAAAEAAABmAAAAAQAAAAEAAAABAAAADwAAAAEAAAAhAQAAAQAAAE4AAAAEAAAAAQAAAAEAAAABAAAAAQAAAAEAAABXAAAAhgAAAAEAAAB3AAAAAQAAACIBAAABAAAATAAAAAEAAAABAAAAAQAAAAIAAAABAAAAAQAAAOEAAAABAAAAAwAAAAEAAAB0AAAAAQAAACEBAAABAAAASgAAAAEAAAABAAAAAQAAAAIAAAABAAAAAQAAAOYAAAABAAAAAQAAAHUAAAABAAAAIAEAAAEAAABKAAAAAQAAAAUAAABeAQAAAQAAACMBAAABAAAAAQAAAKsBAAABAAAAIAEAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAgAAAAEAAACkAQAAAQAAACABAAABAAAABAAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAAtAQAAAQAAAHAAAAABAAAAKAEAAAMAAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAAuAQAAAQAAAAEAAADPAgAAAQAAAAEAAADPAgAAAQAAAJACAADQAgAAAQAAAAwAAAABAAAAwQIAAAEAAAAOAAAAAQAAAE8AAAABAAAAcQIAAAEAAAAOAAAAAQAAAE4AAAABAAAAcQIAAAEAAAAPAAAAAQAAAE0AAABzAgAAAQAAAA4AAAABAAAAzgIAAAEAAAA3AAAAAQAAAAEAAAABAAAAzgIAAAEAAAABAAAAwgIAAAEAAAABAAAAzQIAAAEAAAABAAAAAQAAAB8AAAABAAAArQIAAAEAAAAhAAAAAQAAAAMBAAABAAAAqgEAAAEAAAApAAAAAQAAAPkAAAABAAAAAQAAAAEAAAABAAAAAQAAAKgBAAABAAAAKAAAAAEAAAD5AAAAAwAAAAEAAAABAAAAAQAAAAEAAADPAQAAAQAAAP8AAAABAAAAIwcAAAEAAAABAAAAAQAAAAEAAAAsAAAAAQAAAJ4CAAABAAAAAQAAAAEAAAABAAAAAQAAACwAAAABAAAAEwAAAAEAAACJAgAAAQAAADEAAAABAAAAEgAAAAEAAADPAgAAAQAAAN8AAAABAAAA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AQAAAAEAAAABAAAAQQAAAAEAAAABAAAACgAAALABAAABAAAAAQAAAAEAAAABAAAAAQAAAAEAAAABAAAAAQAAAJIAAAABAAAANQAAAAEAAABEAAAAAQAAAAEAAAAJAAAAAQAAAAEAAAC1AQAAAQAAAAEAAAAYAQAAAQAAAAEAAAC2AQAAAQAAAAEAAAAYAQAAtwEAAAEAAAABAAAAAQAAAM8CAAABAAAAAQAAALEDAAABAAAAzwIAAAEAAAABAAAAAQAAAM8CAAABAAAAAQAAAAEAAAABAAAAzgIAAAEAAAABAAAAAQAAAJsCAAA1AAAAAQAAAJoCAAABAAAAsAIAAAIAAAAeAAAAAQAAAAcAAACoAgAAAQAAAAEAAAABAAAAHgAAAAEAAAADAAAAAQAAAAEAAAABAAAAAQAAAGQAAAABAAAAAgAAAAEAAAABAAAAPwIAAAIAAAABAAAAHgAAAAEAAAABAAAAAQAAAAEAAAABAAAAAgAAAAEAAABiAAAAAQAAAAQAAAABAAAAQQIAACAAAAABAAAABgAAAAEAAABiAAAAAQAAAEQCAAABAAAAiAAAAAEAAAABAAAABwAAAAEAAADFAgAAAQAAAAEAAAAJAAAABgAAAAEAAACPAgAAAQAAAC4AAAAMAAAABgAAAAEAAACNAgAAAQAAAAEAAAA5AAAAAQAAAAYAAAABAAAAjAIAAAEAAAA8AAAABwAAAAEAAACKAgAAAQAAAAEAAABEAAAAAQAAAAEAAAABAAAAOwEAAAEAAAABAAAAAQAAAAIAAABGAQAAAQAAAAEAAAA7AAAAAQAAAAoAAAABAAAAAQAAAAEAAAA6AQAAAgAAAAEAAAABAAAAAQAAAEYBAAA8AAAAAQAAAAEAAAALAAAAAQAAAD0BAAABAAAAAQAAAFYBAAAtAAAAAQAAAAwAAAABAAAAPQEAAAEAAAABAAAAUwEAAAEAAAABAAAAAQAAAAEAAAABAAAANwAAAAEAAAA/AQAAAQAAAAEAAAABAAAAAQAAAE8BAAACAAAAAQAAAAMAAAA2AAAAAQAAAAUAAAABAAAAAQAAADsBAAABAAAAAQAAAAEAAADoAAAAAQAAAGUAAAABAAAAOwAAAAEAAAAGAAAAAQAAAAEAAAA8AQAAAQAAAOgAAAABAAAACgAAAAEAAAAOAAAATAAAAAEAAAA8AAAA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",
+  'C':"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AQAAAAEAAABYAgAAAQAAAGUAAAARAAAAAQAAAFgCAAABAAAAZAAAAAEAAAARAAAAAQAAAFgCAAABAAAAZAAAAAEAAAAxAAAAAQAAADgCAAABAAAAZAAAAAEAAAAxAAAAAQAAABYAAAABAAAAIQIAAAEAAABUAAAAEAAAAAEAAAAxAAAAAQAAABUAAAABAAAAIwIAAFMAAAABAAAAAQAAAAEAAAAOAAAAAQAAADAAAAABAAAAFgAAAAEAAAB2AgAAAQAAAAEAAAABAAAAAQAAAA0AAAABAAAAMAAAAAEAAACMAgAAAQAAABEAAACqAgAAAQAAABIAAAABAAAAAQAAABAAAAABAAAAvAIAAAEAAAABAAAAEAAAAAEAAAC9AgAAEwAAAAEAAADPAgAA5QIAAAkAAAABAAAAxgIAAAEAAADPAgAAAQAAABIAAAABAAAAvAIAABQAAAABAAAA0AIAAAEAAAABAAAAzwIAAAEAAAAMCwAAAQAAAM8CAAABAAAA0AIAAAEAAAABAAAAAQAAAM4CAAABAAAAAQAAAAEAAAA4BQAAAQAAAL4AAAABAAAAEAIAAAEAAAC/AAAAAQAAAA8CAAABAAAAzwIAAAEAAADNAgAAAQAAAAIAAABYAAAAAQAAAHQCAAABAAAAqRkAANACAAABAAAA0AIAAAEAAADCIQAAAQAAAM8CAAABAAAA",
+  'D':"/VMAANACAACxIQAAAQAAAM4CAAABAAAAUfsAANACAAA94QAAAQAAAM8CAAABAAAAAQAAANACAAABAAAAzwIAAAEAAAA+JwAAzQIAAAEAAAABAAAAAQAAAM0CAAABAAAAAQAAALwFAAABAAAA0AIAANgNAADQAgAAD3cAAAEAAADQAgAAN38AAAEAAADQAgAAqBsAAAEAAADPAgAAzwIAAAEAAADVEAAAAQAAAI0eAAABAAAA0AIAAAEAAAAzFwAAAQAAAM8CAAABAAAA0RsAALQeAADQAgAAmQ4AAAEAAAATIQAAAQAAAM8CAAABAAAA0AIAAAEAAADQAgAA"
+};
+
+let _borderCache = null;
+function getBorderCache(){
+  if(_borderCache) return _borderCache;
+  _borderCache = new Uint8Array(1058400);
+  const grades = ['S','A','B','C','D'];
+  const gradeRank = {'S':0,'A':1,'B':2,'C':3,'D':4};
+  const rankArr = new Uint8Array(352800).fill(255);
+  for(const g of grades){
+    const b64 = BORDER_PIXELS_B64[g];
+    if(!b64) continue;
+    const binStr = atob(b64);
+    const buf = new Uint8Array(binStr.length);
+    for(let k=0;k<binStr.length;k++) buf[k]=binStr.charCodeAt(k);
+    const dv = new DataView(buf.buffer);
+    let idx = 0;
+    for(let k=0;k<buf.length;k+=4){
+      idx += dv.getUint32(k, true);
+      const rank = gradeRank[g];
+      if(rank < rankArr[idx]){
+        rankArr[idx] = rank;
+        _borderCache[idx*3]  = BORDER_COLORS[g][0];
+        _borderCache[idx*3+1]= BORDER_COLORS[g][1];
+        _borderCache[idx*3+2]= BORDER_COLORS[g][2];
+      }
+    }
+  }
+  return _borderCache;
+}
+
+function buildBase(){
+  const img = ctxB.createImageData(MAP_W, MAP_H);
+  const d = img.data;
+
+  // Layer 1: 郡色底圖（依當前 pm，隨攻伐變動）
+  for(let i = 0; i < MAP_W * MAP_H; i++){
+    const id = pm[i];
+    if(!id || !JUN[id]){
+      d[i*4]=10; d[i*4+1]=5; d[i*4+2]=2; d[i*4+3]=255;
+    } else {
+      const [r,g,b] = hexToRgb(JUN[id].c);
+      d[i*4]=r; d[i*4+1]=g; d[i*4+2]=b; d[i*4+3]=255;
+    }
+  }
+
+  // Layer 2: 固定邊界層（靜態預計算，永久不變）
+  const bc = getBorderCache();
+  for(let i = 0; i < MAP_W * MAP_H; i++){
+    if(!bc[i*3] && !bc[i*3+1] && !bc[i*3+2]) continue;
+    d[i*4]=bc[i*3]; d[i*4+1]=bc[i*3+1]; d[i*4+2]=bc[i*3+2]; d[i*4+3]=255;
+  }
+
+  // Layer 3: id=0 黑色阻斷（最上層，覆蓋一切）
+  for(let i = 0; i < MAP_W * MAP_H; i++){
+    if(pm[i] !== 0) continue;
+    d[i*4]=0; d[i*4+1]=0; d[i*4+2]=0; d[i*4+3]=255;
+  }
+
+  baseImg = img;
+}
+
+// ── Render ────────────────────────────────────────────
+const offscreen = document.createElement('canvas');
+offscreen.width = MAP_W; offscreen.height = MAP_H;
+const octx = offscreen.getContext('2d');
+
+function drawBase(){
+  ctxB.fillStyle='#0c0700';
+  ctxB.fillRect(0,0,W,H);
+  ctxB.save();
+  ctxB.imageSmoothingEnabled = false;
+  octx.putImageData(baseImg,0,0);
+  ctxB.drawImage(offscreen, vx, vy, MAP_W*sc, MAP_H*sc);
+  ctxB.restore();
+}
+
+function drawOvl(){
+  ctxO.clearRect(0,0,W,H);
+  if(!selId) return;
+
+  const highlight = new Set(Object.keys(JUN[selId]?.nb||{}).map(Number));
+  let regionSet = null;
+  if(showRegion){
+    const reg = JUN[selId]?.r;
+    regionSet = new Set(REGIONS[reg] || []);
+  }
+
+  const ov = ctxO.createImageData(MAP_W, MAP_H);
+  const od = ov.data;
+
+  for(let i = 0; i < MAP_W*MAP_H; i++){
+    const id = pm[i];
+    if(!id) continue;
+
+    if(showRegion){
+      // region mode: dim non-region, bright region
+      if(id === selId){
+        // selected: border glow handled below
+        od[i*4+3] = 0;
+      } else if(regionSet.has(id)){
+        // same region: slight brighten
+        od[i*4]=255; od[i*4+1]=220; od[i*4+2]=100; od[i*4+3]=18;
+      } else {
+        // outside region: darken
+        od[i*4]=0; od[i*4+1]=0; od[i*4+2]=0; od[i*4+3]=180;
+      }
+    } else {
+      // normal mode
+      if(id === selId){
+        od[i*4+3] = 0;
+      } else if(highlight.has(id)){
+        // neighbour: warm highlight
+        od[i*4]=255; od[i*4+1]=210; od[i*4+2]=80; od[i*4+3]=50;
+      } else {
+        // others: dim
+        od[i*4]=0; od[i*4+1]=0; od[i*4+2]=0; od[i*4+3]=160;
+      }
+    }
+  }
+
+  // border glow for selected
+  for(let y=0;y<MAP_H;y++){
+    for(let x=0;x<MAP_W;x++){
+      const i=y*MAP_W+x;
+      if(pm[i]!==selId) continue;
+      const isBord=(x>0&&pm[i-1]!==selId)||(x<MAP_W-1&&pm[i+1]!==selId)||
+                   (y>0&&pm[i-MAP_W]!==selId)||(y<MAP_H-1&&pm[i+MAP_W]!==selId);
+      if(isBord){od[i*4]=255;od[i*4+1]=230;od[i*4+2]=100;od[i*4+3]=255;}
+      else{od[i*4]=255;od[i*4+1]=220;od[i*4+2]=120;od[i*4+3]=24;}
+    }
+  }
+
+  const tmpC = document.createElement('canvas');
+  tmpC.width=MAP_W; tmpC.height=MAP_H;
+  tmpC.getContext('2d').putImageData(ov,0,0);
+  ctxO.save();
+  ctxO.imageSmoothingEnabled=false;
+  ctxO.drawImage(tmpC,vx,vy,MAP_W*sc,MAP_H*sc);
+  ctxO.restore();
+}
+
+function render(){ drawBase(); drawOvl(); }
+
+// ── Pixel hit ─────────────────────────────────────────
+function pxToId(cx,cy){
+  const mx=Math.floor((cx-vx)/sc), my=Math.floor((cy-vy)/sc);
+  if(mx<0||my<0||mx>=MAP_W||my>=MAP_H) return 0;
+  return pm[my*MAP_W+mx];
+}
+
+// ── Panel ─────────────────────────────────────────────
+const panel     = document.getElementById('panel');
+const phColor   = document.getElementById('ph-color');
+const phName    = document.getElementById('ph-name');
+const mId       = document.getElementById('m-id');
+const mRegion   = document.getElementById('m-region');
+const mFaction  = document.getElementById('m-faction');
+const regionBtn = document.getElementById('region-btn');
+const regionBtnText = document.getElementById('region-btn-text');
+const regionList= document.getElementById('region-list');
+
+// ── Region label helper ───────────────────────────────
+function setRegionLabel(id){
+  const d = JUN[id];
+  if(!d) return;
+  document.getElementById('rl-dot').style.color = d.c;
+  document.getElementById('rl-dot').style.background = d.c;
+  document.getElementById('rl-state').textContent = d.r;
+  document.getElementById('rl-county').textContent = d.n;
+  document.getElementById('region-label').classList.remove('hidden');
+  document.getElementById('topbar-sub').style.display = 'none';
+}
+function hideRegionLabel(){
+  document.getElementById('region-label').classList.add('hidden');
+  document.getElementById('topbar-sub').style.display = '';
+}
+
+function openPanel(id){
+  const d = JUN[id];
+  if(!d) return;
+  // if already in region-highlight mode, just update selId and re-render (keep panel hidden)
+  if(showRegion){
+    selId = id;
+    setRegionLabel(id);
+    render();
+    return;
+  }
+  selId = id;
+  showRegion = false;
+  regionBtn.classList.remove('expanded');
+  regionBtnText.textContent = '展示所屬州全部郡縣';
+  regionList.innerHTML = '';
+  hideRegionLabel();
+
+  phColor.style.color = d.c;
+  phColor.style.background = d.c;
+  phName.textContent = d.n;
+  mId.textContent = '#' + id;
+  mRegion.textContent = d.r;
+  mFaction.textContent = d.f;
+
+  panel.classList.add('open');
+  render();
+}
+
+function closePanel(){
+  panel.classList.remove('open');
+  selId = null;
+  showRegion = false;
+  regionList.innerHTML = '';
+  regionBtn.classList.remove('expanded');
+  regionBtnText.textContent = '展示所屬州全部郡縣';
+  hideRegionLabel();
+  render();
+}
+
+document.getElementById('ph-close').addEventListener('click', closePanel);
+
+// region button — hide panel, light up all region cells
+regionBtn.addEventListener('click', ()=>{
+  if(!selId) return;
+  showRegion = true;
+  panel.classList.remove('open');
+  setRegionLabel(selId);
+  render();
+});
+
+// ── Touch / mouse ─────────────────────────────────────
+let drag=false, moved=false, dsx=0, dsy=0, dvx=0, dvy=0;
+let pinch=false, p0d=0, p0s=0, p0mx=0, p0my=0, p0vx=0, p0vy=0;
+
+wrap.addEventListener('touchstart', e=>{
+  e.preventDefault();
+  const t = e.touches;
+  if(t.length===1){
+    drag=true; moved=false; pinch=false;
+    dsx=t[0].clientX; dsy=t[0].clientY; dvx=vx; dvy=vy;
+  } else if(t.length===2){
+    drag=false; pinch=true;
+    const dx=t[1].clientX-t[0].clientX, dy=t[1].clientY-t[0].clientY;
+    p0d=Math.hypot(dx,dy); p0s=sc;
+    p0mx=(t[0].clientX+t[1].clientX)/2; p0my=(t[0].clientY+t[1].clientY)/2;
+    p0vx=vx; p0vy=vy;
+  }
+},{passive:false});
+
+wrap.addEventListener('touchmove', e=>{
+  e.preventDefault();
+  const t = e.touches;
+  if(t.length===1&&drag){
+    const dx=t[0].clientX-dsx, dy=t[0].clientY-dsy;
+    if(Math.hypot(dx,dy)>3) moved=true;
+    vx=dvx+dx; vy=dvy+dy; clamp(); render();
+  } else if(t.length===2&&pinch){
+    moved=true;
+    const dx=t[1].clientX-t[0].clientX, dy=t[1].clientY-t[0].clientY;
+    const nd=Math.hypot(dx,dy), ns=Math.max(.4,Math.min(10,p0s*(nd/p0d)));
+    const mx=(t[0].clientX+t[1].clientX)/2, my=(t[0].clientY+t[1].clientY)/2;
+    vx=mx-(mx-p0vx)*(ns/p0s); vy=my-(my-p0vy)*(ns/p0s);
+    sc=ns; clamp(); render();
+  }
+},{passive:false});
+
+wrap.addEventListener('touchend', e=>{
+  e.preventDefault();
+  if(!moved&&drag){
+    const tc=e.changedTouches[0];
+    const id=pxToId(tc.clientX,tc.clientY);
+    if(id>0) openPanel(id);
+    else closePanel();
+  }
+  drag=false; pinch=false;
+},{passive:false});
+
+// mouse
+wrap.addEventListener('mousedown', e=>{drag=true;moved=false;dsx=e.clientX;dsy=e.clientY;dvx=vx;dvy=vy;});
+wrap.addEventListener('mousemove', e=>{
+  if(!drag) return;
+  if(Math.hypot(e.clientX-dsx,e.clientY-dsy)>3) moved=true;
+  vx=dvx+(e.clientX-dsx); vy=dvy+(e.clientY-dsy); clamp(); render();
+});
+wrap.addEventListener('mouseup', e=>{
+  if(!moved){ const id=pxToId(e.clientX,e.clientY); if(id>0)openPanel(id); else closePanel(); }
+  drag=false;
+});
+wrap.addEventListener('wheel', e=>{
+  e.preventDefault();
+  const ns=Math.max(.4,Math.min(10,sc*(e.deltaY<0?1.12:.9)));
+  vx=e.clientX-(e.clientX-vx)*(ns/sc); vy=e.clientY-(e.clientY-vy)*(ns/sc);
+  sc=ns; clamp(); render();
+},{passive:false});
+
+// zoom buttons
+document.getElementById('zin').addEventListener('click',()=>{
+  const ns=Math.min(10,sc*1.3);
+  vx=W/2-(W/2-vx)*(ns/sc); vy=H/2-(H/2-vy)*(ns/sc); sc=ns; clamp(); render();
+});
+document.getElementById('zout').addEventListener('click',()=>{
+  const ns=Math.max(.4,sc/1.3);
+  vx=W/2-(W/2-vx)*(ns/sc); vy=H/2-(H/2-vy)*(ns/sc); sc=ns; clamp(); render();
+});
+
+window.addEventListener('resize',()=>{setSizes();render();});
+
+// ── Init ──────────────────────────────────────────────
+
+async function init(){
+  const r = await fetch('legion3k_map.bin');
+  const buf = await r.arrayBuffer();
+  pm = new Uint8Array(buf); // 720×490，每字節=郡ID
+  buildBase();
+  fit();
+  render();
+  setTimeout(()=>{
+    const l=document.getElementById('loading');
+    l.classList.add('fade');
+    setTimeout(()=>l.remove(),520);
+  },1400);
+}
+
+init();
+</script>
+</body>
+</html>
